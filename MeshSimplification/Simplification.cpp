@@ -16,41 +16,52 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 	// Plane map
 	std::map<unsigned int, Plane> plane_map = compute_planes(mesh, G);
 
+	// Define mesh bbox
+	Bbox bbox = CGAL::Polygon_mesh_processing::bbox(*mesh);
+
 	// Define simplified mesh
-	Mesh simplified;
-	std::set<Point> points;
-	Vertex simplified_vertex; std::set<Vertex> simplified_vertices;
+	Mesh simplified_mesh;
+	std::vector<Point> points;
+	Vertex simplified_vertex;
+	std::vector<Vertex> simplified_vertices;
 	
 	// Traverse structure graph
 	Graph_vertex_iterator vb, ve;
 	for (boost::tie(vb, ve) = vertices(*G); vb != ve; ++vb) {
 		points = compute_intersections(G, *vb, &plane_map);
-		
-		/*std::cout << "Segment " << curr_id << std::endl;
-		std::cout << "Number of points: " << points.size() << std::endl;
-		for (auto point : points) {
-			std::cout << "Point: " << point.x() << ", " << point.y() << ", " << point.z() << std::endl;
-		} 
-		std::cout << std::endl;*/
 
 		// Define face vertices
 		for (auto point : points) {
-			simplified_vertex = simplified.add_vertex(point);
-			simplified_vertices.insert(simplified_vertex);
+			if (is_in_bbox(bbox, point)) {
+				simplified_vertex = simplified_mesh.add_vertex(point);
+				simplified_vertices.push_back(simplified_vertex);
+			}
 		}
 
 		// Define face
-		// simplified.add_face(simplified_vertices);
+		// Assert the face is at least rectangular
+		if (simplified_vertices.size() >= 4) { 
+			simplified_mesh.add_face(simplified_vertices); 
+		}
+
 		simplified_vertices.clear();
 	}
 
-	std::cout << "#vertices: " << simplified.num_vertices() << std::endl;
-	std::cout << "#faces: " << simplified.num_faces() << std::endl;
+	//// Remove any isolated vertices
+	//for (auto vertex : simplified_mesh.vertices()) {
+	//	if (simplified_mesh.is_isolated(vertex)) {
+	//		simplified_mesh.remove_vertex(vertex);
+	//	}
+	//}
 
-	return simplified;
+	std::cout << "#vertices: " << simplified_mesh.num_vertices() << std::endl;
+	std::cout << "#faces: " << simplified_mesh.num_faces() << std::endl;
+
+	return simplified_mesh;
 }
 
 
+// Compute supporting planes of segments
 std::map<unsigned int, Plane> Simplification::compute_planes(const Mesh* mesh, const Graph* G) {
 	std::map<unsigned int, Plane> plane_map;
 
@@ -73,25 +84,24 @@ std::map<unsigned int, Plane> Simplification::compute_planes(const Mesh* mesh, c
 }
 
 
-std::set<Point> Simplification::compute_intersections(const Graph* G, const Graph_vertex v, std::map<unsigned int, Plane>* plane_map) {
-	std::set<Point> points;
+// Compute plane intersections
+std::vector<Point> Simplification::compute_intersections(const Graph* G, const Graph_vertex v, std::map<unsigned int, Plane>* plane_map) {
+	std::vector<Point> points;
 
 	unsigned int curr_id, adj_id, other_id;
 	Plane curr_plane, adj_plane, other_plane;
 
-	// Vertex to segment
+	// Vertex to plane
 	curr_id = (*G)[v].segment;
+	curr_plane = (*plane_map)[curr_id];
 
 	// Find adjacent vertices
 	auto adjacent = boost::adjacent_vertices(v, *G);
 
 	// For every adjacent
 	for (auto adj : make_iterator_range(adjacent)) {
-		// Vertex to segment
+		// Vertex to plane
 		adj_id = (*G)[adj].segment;
-
-		// Recover planes
-		curr_plane = (*plane_map)[curr_id];
 		adj_plane = (*plane_map)[adj_id];
 
 		// Find adjacent segments of adjacent
@@ -101,10 +111,8 @@ std::set<Point> Simplification::compute_intersections(const Graph* G, const Grap
 		for (auto other : make_iterator_range(others)) {
 			// Check if edge exists
 			if (adj < other && boost::edge(v, other, *G).second) {
-				// Vertex to segment
+				// Vertex to plane
 				other_id = (*G)[other].segment;
-
-				// Recover third plane
 				other_plane = (*plane_map)[other_id];
 
 				// Compute intersection fo three planes
@@ -112,7 +120,7 @@ std::set<Point> Simplification::compute_intersections(const Graph* G, const Grap
 
 				// Handle intersection
 				if (inter != boost::none) {
-					if (const Point* pt = boost::get<Point>(&(*inter))) {points.insert(*pt);}
+					if (const Point* pt = boost::get<Point>(&(*inter))) {points.push_back(*pt);}
 				}
 			}
 		}

@@ -16,11 +16,25 @@ inline std::vector<Vertex> vertex_around_face(const Mesh* mesh, Face face) {
 
 	return vertices;
 }
+
+// Face around target circulator
+inline std::vector<Face> face_around_vertex(const Mesh* mesh, Vertex vertex) {
+	std::vector<Face> faces;
+	Face face;
+
+	Face_around_target_circulator fbegin(mesh->halfedge(vertex), *mesh), done(fbegin);
+	do {
+		face = *fbegin++;
+		if (face != mesh->null_face()) {faces.push_back(face);}
+	} while (fbegin != done);
+
+	return faces;
+}
 // CIRCULATORS //
 
 
 // GENERAL FUNCTIONS //
-// K-Ring Neighboring Vertices
+// K-Ring Neighboring Vertices (Vertex)
 inline std::set<Vertex> get_k_ring_vertices(const Mesh* mesh, const Vertex vertex, unsigned int k) {
 	std::set<Vertex> neighbors, new_neighbors;
 	Vertex neighbor;
@@ -46,7 +60,28 @@ inline std::set<Vertex> get_k_ring_vertices(const Mesh* mesh, const Vertex verte
 	return neighbors;
 }
 
-// K-Ring Neighboring Faces
+// K-Ring Neighboring Faces (Vertex)
+inline std::set<Face> get_k_ring_faces(const Mesh* mesh, const Vertex vertex, unsigned int k) {
+	std::set<Vertex> neighbors;
+	std::vector<Face> new_faces;
+	std::set<Face> faces;
+
+	if (k == 1) {
+		new_faces = face_around_vertex(mesh, vertex);
+		faces.insert(new_faces.begin(), new_faces.end());
+	} else {
+		neighbors = get_k_ring_vertices(mesh, vertex, k - 1);
+		for (auto neighbor : neighbors) {
+			// Face around target circulator
+			new_faces = face_around_vertex(mesh, neighbor);
+			faces.insert(new_faces.begin(), new_faces.end());
+		}
+	}
+
+	return faces;
+}
+
+// K-Ring Neighboring Faces (Face)
 inline std::set<Face> get_k_ring_faces(const Mesh* mesh, const Face face, unsigned int k) {
 	std::set<Face> neighbors, new_neighbors;
 	Face opp_face;
@@ -90,5 +125,19 @@ inline Plane fit_plane_to_faces(const Mesh* mesh, std::set<Face>* faces) {
 	linear_least_squares_fitting_3(points.begin(), points.end(), plane, CGAL::Dimension_tag<0>());
 
 	return plane;
+}
+
+// Point in Bbox
+inline bool is_in_bbox(const Bbox bbox, const Point pt) {
+
+	if (pt.x() >= bbox.xmin() && pt.x() <= bbox.xmax()) {
+		if (pt.y() >= bbox.ymin() && pt.y() <= bbox.ymax()) {
+			if (pt.z() >= bbox.zmin() && pt.z() <= bbox.zmax()) {
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 // GENERAL FUNCTIONS //

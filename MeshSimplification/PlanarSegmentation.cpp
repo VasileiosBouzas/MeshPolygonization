@@ -104,8 +104,8 @@ std::size_t PlanarSegmentation::apply(Mesh* mesh, double dist_thres, unsigned in
 Face PlanarSegmentation::get_max_planarity_face(const Mesh* mesh, std::set<Face>* faces) {
 	FProp_double planarity = mesh->property_map<Face, double>("f:planarity").first;
 	auto max_face = std::max_element(faces->begin(), faces->end(),
-		                             [&](const Face &a, const Face &b)
-	                                 {return planarity[a] < planarity[b];});
+									[&](const Face &a, const Face &b)
+									{return planarity[a] < planarity[b]; });
 
 	return *max_face;
 }

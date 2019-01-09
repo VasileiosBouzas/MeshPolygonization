@@ -29,7 +29,7 @@ void Planarity::compute(Mesh* mesh, unsigned int num_rings) {
 double Planarity::compute_k_ring_planarity(const Mesh* mesh, const Vertex vertex, unsigned int k) {
 	// Collect k-ring neighbors
 	std::set<Vertex> vertices = get_k_ring_vertices(mesh, vertex, k);
-	
+
 	// Retrieve geometry of neighbors
 	std::vector<Point> points;
 	VProp_geom geom = mesh->points();

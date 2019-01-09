@@ -87,11 +87,17 @@ std::set<unsigned int> StructureGraph::get_adjacent_segments(const Mesh* mesh, u
 	FProp_int chart = mesh->property_map<Face, int>("f:chart").first;
 
 	// Iterate faces
-	std::set<Face> faces;
-	Face opp_face;
+	std::vector<Vertex> vertices;
+	std::set<Face> new_faces, faces;
 	for (auto face : segment) {
-		// Collect faces around face
-		faces = get_k_ring_faces(mesh, face, 1);
+		// Collect vertices
+		vertices = vertex_around_face(mesh, face);
+
+		// Collect neighboring faces
+		for (auto vertex : vertices) {
+			new_faces = get_k_ring_faces(mesh, vertex, 1);
+			faces.insert(new_faces.begin(), new_faces.end());
+		}
 
 		// Iterate faces
 		for (auto opp_face : faces) {
@@ -101,6 +107,8 @@ std::set<unsigned int> StructureGraph::get_adjacent_segments(const Mesh* mesh, u
 				adjacent.insert(chart[opp_face]);
 			}
 		}
+
+		faces.clear();
 	}
 
 	return adjacent;

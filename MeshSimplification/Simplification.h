@@ -13,6 +13,6 @@ public:
 
 private:
 	std::map<unsigned int, Plane> compute_planes(const Mesh* mesh, const Graph* G);
-	std::set<Point> compute_intersections(const Graph* G, const Graph_vertex v, std::map<unsigned int, Plane>* plane_map);
+	std::vector<Point> compute_intersections(const Graph* G, const Graph_vertex v, std::map<unsigned int, Plane>* plane_map);
 };
 

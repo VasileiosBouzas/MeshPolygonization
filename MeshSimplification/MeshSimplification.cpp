@@ -159,6 +159,7 @@ void writeMesh(const Mesh* mesh, std::string filename) {
 	ply_add_scalar_property(ply, "x", PLY_DOUBLE);
 	ply_add_scalar_property(ply, "y", PLY_DOUBLE);
 	ply_add_scalar_property(ply, "z", PLY_DOUBLE);
+	ply_add_scalar_property(ply, "planarity", PLY_DOUBLE);
 
 	// Faces
 	name = "face";
@@ -178,16 +179,18 @@ void writeMesh(const Mesh* mesh, std::string filename) {
 
 	// Vertex properties
 	VProp_geom geom = mesh->points();
+	VProp_double v_planar = mesh-> property_map<Vertex, double>("v:planarity").first;
 
 	for (auto v : mesh->vertices()) {
 		Point point = geom[v];
 		ply_write(ply, point.x());
 		ply_write(ply, point.y());
 		ply_write(ply, point.z());
+		ply_write(ply, v_planar[v]);
 	}
 
 	// Face properties
-	FProp_double planarity = mesh->property_map<Face, double>("f:planarity").first;
+	FProp_double f_planar = mesh->property_map<Face, double>("f:planarity").first;
 	FProp_int chart = mesh->property_map<Face, int>("f:chart").first;
 	FProp_double imp = mesh->property_map<Face, double>("f:imp").first;
 	FProp_color color = mesh->property_map<Face, Point>("f:color").first;
@@ -203,7 +206,7 @@ void writeMesh(const Mesh* mesh, std::string filename) {
 		}
 
 		// Add planarity attribute
-		ply_write(ply, planarity[f]);
+		ply_write(ply, f_planar[f]);
 
 		// Add chart attribute
 		ply_write(ply, chart[f]);

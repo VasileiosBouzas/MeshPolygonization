@@ -7,7 +7,9 @@
 #include <CGAL/centroid.h>
 #include <CGAL/intersections.h>
 #include <CGAL/Polygon_mesh_processing/measure.h>
+#include <CGAL/Polygon_mesh_processing/bbox.h>
 #include <CGAL/boost/graph/Face_filtered_graph.h>
+#include <CGAL/Bbox_3.h>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
 
@@ -17,6 +19,7 @@ typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
 typedef Kernel::Point_3                                     Point;
 typedef Kernel::Plane_3                                     Plane;
 typedef Kernel::Line_3                                      Line;
+typedef CGAL::Bbox_3                                        Bbox;
 // GEOMETRY //
 
 
