@@ -31,14 +31,14 @@ double Planarity::compute_k_ring_planarity(const Mesh* mesh, const Vertex vertex
 	std::set<Vertex> vertices = get_k_ring_vertices(mesh, vertex, k);
 
 	// Retrieve geometry of neighbors
-	std::vector<Point> points;
+	std::vector<Point_3> points;
 	VProp_geom geom = mesh->points();
 	for (auto v : vertices) {
 		points.push_back(geom[v]);
 	}
 
 	// Calculate planarity
-	Plane plane;
+	Plane_3 plane;
 	double planarity = linear_least_squares_fitting_3(points.begin(), points.end(), plane, CGAL::Dimension_tag<0>());
 
 	return planarity;

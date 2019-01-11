@@ -12,7 +12,7 @@ public:
 
 private:
 	Face get_max_planarity_face(const Mesh* mesh, std::set<Face>* faces);
-	bool check_distance(const Mesh* mesh, Face face, Plane plane, double dist);
-	Point random_color();
+	bool check_distance(const Mesh* mesh, Face face, Plane_3 plane, double dist);
+	Point_3 random_color();
 };
 

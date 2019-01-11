@@ -14,14 +14,14 @@ Simplification::~Simplification()
 
 Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 	// Plane map
-	std::map<unsigned int, Plane> plane_map = compute_planes(mesh, G);
+	std::map<unsigned int, Plane_3> plane_map = compute_planes(mesh, G);
 
 	// Define mesh bbox
-	Bbox bbox = CGAL::Polygon_mesh_processing::bbox(*mesh);
+	Bbox_3 bbox = CGAL::Polygon_mesh_processing::bbox(*mesh);
 
 	// Define simplified mesh
 	Mesh simplified_mesh;
-	std::vector<Point> points;
+	std::vector<Point_3> points;
 	Vertex simplified_vertex;
 	std::vector<Vertex> simplified_vertices;
 	
@@ -62,8 +62,8 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 
 
 // Compute supporting planes of segments
-std::map<unsigned int, Plane> Simplification::compute_planes(const Mesh* mesh, const Graph* G) {
-	std::map<unsigned int, Plane> plane_map;
+std::map<unsigned int, Plane_3> Simplification::compute_planes(const Mesh* mesh, const Graph* G) {
+	std::map<unsigned int, Plane_3> plane_map;
 
 	// Compute planes for segments
 	Graph_vertex_iterator vb, ve;
@@ -85,11 +85,11 @@ std::map<unsigned int, Plane> Simplification::compute_planes(const Mesh* mesh, c
 
 
 // Compute plane intersections
-std::vector<Point> Simplification::compute_intersections(const Graph* G, const Graph_vertex v, std::map<unsigned int, Plane>* plane_map) {
-	std::vector<Point> points;
+std::vector<Point_3> Simplification::compute_intersections(const Graph* G, const Graph_vertex v, std::map<unsigned int, Plane_3>* plane_map) {
+	std::vector<Point_3> points;
 
 	unsigned int curr_id, adj_id, other_id;
-	Plane curr_plane, adj_plane, other_plane;
+	Plane_3 curr_plane, adj_plane, other_plane;
 
 	// Vertex to plane
 	curr_id = (*G)[v].segment;
@@ -120,7 +120,7 @@ std::vector<Point> Simplification::compute_intersections(const Graph* G, const G
 
 				// Handle intersection
 				if (inter != boost::none) {
-					if (const Point* pt = boost::get<Point>(&(*inter))) {points.push_back(*pt);}
+					if (const Point_3* pt = boost::get<Point_3>(&(*inter))) {points.push_back(*pt);}
 				}
 			}
 		}

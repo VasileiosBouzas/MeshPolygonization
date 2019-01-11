@@ -20,10 +20,10 @@ std::size_t PlanarSegmentation::apply(Mesh* mesh, double dist_thres, unsigned in
 
 	// Create chart attribute
 	FProp_int chart = mesh->add_property_map<Face, int>("f:chart", -1).first;
-	FProp_color color = mesh->add_property_map<Face, Point>("f:color", Point(0, 0, 0)).first;
+	FProp_color color = mesh->add_property_map<Face, Point_3>("f:color", Point_3(0, 0, 0)).first;
 
 	double dist = std::pow(dist_thres, 2);
-	Point current_color = random_color();
+	Point_3 current_color = random_color();
 	int current_index = 1;
 	std::size_t seg_number = 0;
 	while (faces.size() != 0) {
@@ -36,7 +36,7 @@ std::size_t PlanarSegmentation::apply(Mesh* mesh, double dist_thres, unsigned in
 
 		// Calculate initial plane
 		std::set<Face> neighbors = get_k_ring_faces(mesh, max_face, num_rings);
-		Plane plane = fit_plane_to_faces(mesh, &neighbors);
+		Plane_3 plane = fit_plane_to_faces(mesh, &neighbors);
 
 		// Update
 		faces.erase(max_face);
@@ -84,7 +84,7 @@ std::size_t PlanarSegmentation::apply(Mesh* mesh, double dist_thres, unsigned in
 		for (auto face : current_region) {
 			std::vector<Vertex> fc = vertex_around_face(mesh, face);
 			for (auto v : fc) {
-				Point proj = plane.projection(geom[v]);
+				Point_3 proj = plane.projection(geom[v]);
 				geom[v] = proj;
 			}
 		}*/
@@ -112,26 +112,24 @@ Face PlanarSegmentation::get_max_planarity_face(const Mesh* mesh, std::set<Face>
 
 
 // Check distance
-bool PlanarSegmentation::check_distance(const Mesh* mesh, Face face, Plane plane, double dist) {
+bool PlanarSegmentation::check_distance(const Mesh* mesh, Face face, Plane_3 plane, double dist) {
 	// Collect vertices for face
 	std::vector<Vertex> vertices = vertex_around_face(mesh, face);
 
-	bool is_fitting;
 	VProp_geom geom = mesh->points();
 	for (auto vertex : vertices) {
-		is_fitting = squared_distance(geom[vertex], plane) < dist;
-		if (is_fitting == false) break;
+		if (squared_distance(geom[vertex], plane) > dist) { return false; }
 	}
 
-	return is_fitting;
+	return true;
 }
 
 
 // Assign color to each region
-Point PlanarSegmentation::random_color() {
+Point_3 PlanarSegmentation::random_color() {
 	int R = -1; int G = -1; int B = -1;
 	while (R < 100) { R = rand() % 256; }
 	while (G < 100) { G = rand() % 256; }
 	while (B < 100) { B = rand() % 256; }
-	return Point(R, G, B);
+	return Point_3(R, G, B);
 }

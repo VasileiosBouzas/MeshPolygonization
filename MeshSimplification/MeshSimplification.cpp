@@ -97,9 +97,9 @@ void writeGraph(const Mesh* mesh, const Graph* G, std::string filename) {
 	unsigned int id;
 	std::set<Face> segment;
 	std::vector<Vertex> vs;
-	std::set<Point> points;
+	std::set<Point_3> points;
 	VProp_geom geom = mesh->points();
-	Point centroid;
+	Point_3 centroid;
 
 	// Open file
 	std::ofstream fout;
@@ -182,7 +182,7 @@ void writeMesh(const Mesh* mesh, std::string filename) {
 	VProp_double v_planar = mesh-> property_map<Vertex, double>("v:planarity").first;
 
 	for (auto v : mesh->vertices()) {
-		Point point = geom[v];
+		Point_3 point = geom[v];
 		ply_write(ply, point.x());
 		ply_write(ply, point.y());
 		ply_write(ply, point.z());
@@ -193,7 +193,7 @@ void writeMesh(const Mesh* mesh, std::string filename) {
 	FProp_double f_planar = mesh->property_map<Face, double>("f:planarity").first;
 	FProp_int chart = mesh->property_map<Face, int>("f:chart").first;
 	FProp_double imp = mesh->property_map<Face, double>("f:imp").first;
-	FProp_color color = mesh->property_map<Face, Point>("f:color").first;
+	FProp_color color = mesh->property_map<Face, Point_3>("f:color").first;
 
 	std::vector<Vertex> vertices;
 	for (auto f : mesh->faces()) {
@@ -254,7 +254,7 @@ void writeSimplified(const Mesh* mesh, std::string filename) {
 
 	// Write vertices
 	for (auto v : mesh->vertices()) {
-		Point point = geom[v];
+		Point_3 point = geom[v];
 		ply_write(ply, point.x());
 		ply_write(ply, point.y());
 		ply_write(ply, point.z());

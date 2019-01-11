@@ -107,9 +107,9 @@ inline std::set<Face> get_k_ring_faces(const Mesh* mesh, const Face face, unsign
 }
 
 // Fit plane to faces
-inline Plane fit_plane_to_faces(const Mesh* mesh, std::set<Face>* faces) {
+inline Plane_3 fit_plane_to_faces(const Mesh* mesh, std::set<Face>* faces) {
 	std::vector<Vertex> vertices;
-	std::vector<Point> points;
+	std::vector<Point_3> points;
 	VProp_geom geom = mesh->points();
 
 	// Retrieve geometry for points of current region
@@ -121,14 +121,14 @@ inline Plane fit_plane_to_faces(const Mesh* mesh, std::set<Face>* faces) {
 	}
 
 	// Calculate plane
-	Plane plane;
+	Plane_3 plane;
 	linear_least_squares_fitting_3(points.begin(), points.end(), plane, CGAL::Dimension_tag<0>());
 
 	return plane;
 }
 
 // Point in Bbox
-inline bool is_in_bbox(const Bbox bbox, const Point pt) {
+inline bool is_in_bbox(const Bbox_3 bbox, const Point_3 pt) {
 
 	if (pt.x() >= bbox.xmin() && pt.x() <= bbox.xmax()) {
 		if (pt.y() >= bbox.ymin() && pt.y() <= bbox.ymax()) {
