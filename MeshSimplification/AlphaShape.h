@@ -8,7 +8,7 @@ public:
 	AlphaShape();
 	~AlphaShape();
 
-	void construct(std::vector<Point_3> points, Plane_3 plane);
+	std::vector<Point_3> construct(std::set<Point_3> points, Plane_3 plane);
 
 };
 
