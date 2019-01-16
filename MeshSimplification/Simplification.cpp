@@ -70,8 +70,17 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G, double dist_thres) 
 
 		// Define face
 		// Assert the face is at least triangular
-		if (simplified_vertices.size() >= 3) { 
-			simplified_mesh.add_face(simplified_vertices); 
+		if (simplified_vertices.size() >= 3) {
+			// Add face
+			Face face = simplified_mesh.add_face(simplified_vertices);
+
+			// Compute normal
+			Vector_3 normal = CGAL::Polygon_mesh_processing::compute_face_normal(face, simplified_mesh);
+			Vector_3 seg_normal = compute_segment_orientation(mesh, id);
+
+			if (CGAL::angle(normal, seg_normal) == CGAL::OBTUSE) {
+				reverse_face_orientations(&simplified_mesh, face);
+			}
 		}
 
 		simplified_vertices.clear();
@@ -79,7 +88,7 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G, double dist_thres) 
 
 	std::cout << "#vertices: " << simplified_mesh.num_vertices() << std::endl;
 	std::cout << "#faces: " << simplified_mesh.num_faces() << std::endl;
-
+	
 	return simplified_mesh;
 }
 
@@ -153,40 +162,88 @@ std::set<Point_3> Simplification::compute_intersections(const Graph* G, const Gr
 }
 
 
-//// Retrieve interior points
-//std::vector<Point_3> Simplification::get_interior_points(const Mesh* mesh, unsigned int id) {
-//	std::vector<Point_3> interior;
-//
-//	// Select segment by id
-//	std::set<Face> segment = StructureGraph::select_segment(mesh, id);
-//
-//	// Iterate faces
-//	std::vector<Vertex> new_vertices;
-//	std::set<Vertex> vertices;
-//	for (auto face : segment) {
-//		// Retrieve face vertices
-//		new_vertices = vertex_around_face(mesh, face);
-//		vertices.insert(new_vertices.begin(), new_vertices.end());
-//	}
-//
-//	// Retrieve points
-//	std::vector<Face> neighbors;
-//	FProp_int chart = mesh->property_map<Face, int>("f:chart").first;
-//	VProp_geom geom = mesh->points();
-//	for (auto vertex : vertices) {
-//		bool is_in = true;
-//
-//		// Retrieve neighboring vertices
-//		neighbors = face_around_vertex(mesh, vertex);
-//
-//		// Check neighbors
-//		for (auto neighbor : neighbors) {
-//			if (chart[neighbor] != id) {is_in = false; break;}
-//		}
-//
-//		// Add point
-//		if (is_in) { interior.push_back(geom[vertex]); }
-//	}
-//
-//	return interior;
-//}
+// Retrieve interior points
+std::vector<Point_3> Simplification::get_interior_points(const Mesh* mesh, unsigned int id) {
+	std::vector<Point_3> interior;
+
+	// Select segment by id
+	std::set<Face> segment = StructureGraph::select_segment(mesh, id);
+
+	// Iterate faces
+	std::vector<Vertex> new_vertices;
+	std::set<Vertex> vertices;
+	for (auto face : segment) {
+		// Retrieve face vertices
+		new_vertices = vertex_around_face(mesh, face);
+		vertices.insert(new_vertices.begin(), new_vertices.end());
+	}
+
+	// Retrieve points
+	std::vector<Face> neighbors;
+	FProp_int chart = mesh->property_map<Face, int>("f:chart").first;
+	VProp_geom geom = mesh->points();
+	for (auto vertex : vertices) {
+		bool is_in = true;
+
+		// Retrieve neighboring vertices
+		neighbors = face_around_vertex(mesh, vertex);
+
+		// Check neighbors
+		for (auto neighbor : neighbors) {
+			if (chart[neighbor] != id) {is_in = false; break;}
+		}
+
+		// Add point
+		if (is_in) { interior.push_back(geom[vertex]); }
+	}
+
+	return interior;
+}
+
+
+// Compute segment orientation
+Vector_3 Simplification::compute_segment_orientation(const Mesh* mesh, unsigned int id) {
+	FProp_int chart = mesh->property_map<Face, int>("f:chart").first;
+	for (auto face : mesh->faces()) {
+		if (chart[face] == id) {
+			return CGAL::Polygon_mesh_processing::compute_face_normal(face, *mesh); 
+		}
+	}
+}
+
+
+// Reverse orientation
+void Simplification::reverse_orientation(Mesh* mesh, Halfedge first) {
+	if (first == Halfedge()) return;
+	Halfedge last = first;
+	Halfedge prev = first;
+	Halfedge start = first;
+	first = mesh->next(first);
+	Vertex  new_v = mesh->target(start);
+	while (first != last) {
+		Vertex  tmp_v = mesh->target(first);
+		mesh->set_target(first, new_v);
+		mesh->set_halfedge(new_v, first);
+		new_v = tmp_v;
+		Halfedge n = mesh->next(first);
+		mesh->set_next(first, prev);
+		prev = first;
+		first = n;
+	}
+	mesh->set_target(start, new_v);
+	mesh->set_halfedge(new_v, start);
+	mesh->set_next(start, prev);
+}
+
+
+// Reverse face orientations
+void Simplification::reverse_face_orientations(Mesh* mesh, Face face) {
+	reverse_orientation(mesh, mesh->halfedge(face));
+
+	for (auto hd : mesh->halfedges_around_face(mesh->halfedge(face))) {
+		Halfedge ohd = mesh->opposite(hd);
+		if (mesh->is_border(ohd) && mesh->target(hd) == mesh->target(ohd)) {
+			reverse_orientation(mesh, ohd);
+		}
+	}
+}

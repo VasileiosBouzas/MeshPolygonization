@@ -25,29 +25,22 @@ std::vector<Point_3> AlphaShape::construct(std::set<Point_3> points, Plane_3 pla
 	// Find optimal alpha
 	Alpha_iterator opt = as.find_optimal_alpha(1);
 	as.set_alpha((*opt)*(*opt));
-	as.set_mode(Alpha_shape_2::REGULARIZED);
+	as.set_mode(Alpha_shape_2::GENERAL);
 
 	// Retrieve alpha boundary
 	std::vector<Segment_2> segments;
 	for (Alpha_shape_edges_iterator it = as.alpha_shape_edges_begin(); it != as.alpha_shape_edges_end(); ++it) {
-		segments.push_back(as.segment(*it));
+		if (as.classify(*it) == Alpha_shape_2::REGULAR) { segments.push_back(as.segment(*it)); }
 	}
 
-	// Boundary segment map
-	std::map<Point_2, Point_2> boundary;
-	for (auto segment : segments) {
-		boundary[segment.vertex(1)] = segment.vertex(2);
-	}
-
-	// Order boundary vertices
+	// Order points
 	std::vector<Point_2> sorted_points;
-	Point_2 start = boundary.begin()->first, end;
-	while (boundary.size() > 0) {
-		sorted_points.push_back(start);
-		end = boundary[start];
-		boundary.erase(start);
-		start = end;
-	}
+	Segment_2 next = segments[0];
+	Point_2 start = next.source();
+	do {
+		sorted_points.push_back(next.source());
+		next = get_incident_edge(&segments, next.target());
+	} while (start != next.source());
 
 	// Convert to 3D
 	std::vector<Point_3> points_3d;
@@ -57,3 +50,11 @@ std::vector<Point_3> AlphaShape::construct(std::set<Point_3> points, Plane_3 pla
 
 	return points_3d;
 }
+
+
+Segment_2 AlphaShape::get_incident_edge(std::vector<Segment_2>* segments, Point_2 target) {
+	for (auto segment : *segments) {
+		if (segment.source() == target) { return segment; }
+	}
+}
+

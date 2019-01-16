@@ -15,5 +15,8 @@ private:
 	std::map<unsigned int, Plane_3> compute_planes(const Mesh* mesh, const Graph* G);
 	std::set<Point_3> compute_intersections(const Graph* G, const Graph_vertex v, std::map<unsigned int, Plane_3>* plane_map);
 	std::vector<Point_3> get_interior_points(const Mesh* mesh, unsigned int id);
+	void reverse_orientation(Mesh* mesh, Halfedge first);
+	void reverse_face_orientations(Mesh* mesh, Face face);
+	Vector_3 compute_segment_orientation(const Mesh* mesh, unsigned int id);
 };
 

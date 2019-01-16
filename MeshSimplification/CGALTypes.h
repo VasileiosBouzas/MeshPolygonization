@@ -8,8 +8,11 @@
 #include <CGAL/intersections.h>
 #include <CGAL/Polygon_mesh_processing/measure.h>
 #include <CGAL/Polygon_mesh_processing/bbox.h>
-#include <CGAL/boost/graph/Face_filtered_graph.h>
+#include <CGAL/Polygon_mesh_processing/compute_normal.h>
+#include <CGAL/Polygon_mesh_processing/orientation.h>
+#include <CGAL/Vector_3.h>
 #include <CGAL/Bbox_3.h>
+#include <CGAL/boost/graph/Face_filtered_graph.h>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <CGAL/Alpha_shape_2.h>
@@ -37,6 +40,7 @@ typedef Kernel::Point_3                                     Point_3;
 typedef Kernel::Plane_3                                     Plane_3;
 typedef Kernel::Line_3                                      Line_3;
 typedef CGAL::Bbox_3                                        Bbox_3;
+typedef Kernel::Vector_3                                    Vector_3;
 // 3D //
 // GEOMETRY //
 
@@ -56,6 +60,7 @@ typedef Mesh::Property_map<Vertex, double>                  VProp_double;
 typedef Mesh::Property_map<Face, int>                       FProp_int;
 typedef Mesh::Property_map<Face, double>                    FProp_double;
 typedef Mesh::Property_map<Face, Point_3>                   FProp_color;
+typedef Mesh::Property_map<Face, Vector_3>                  FProp_normal;
 typedef CGAL::Face_filtered_graph<Mesh>                     Filtered_graph;
 // SURFACE_MESH //
 
