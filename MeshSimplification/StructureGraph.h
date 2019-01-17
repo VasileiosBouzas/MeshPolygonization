@@ -9,7 +9,6 @@ public:
 	~StructureGraph();
 
 	Graph construct(Mesh* mesh, std::size_t seg_number, double imp_thres);
-	static std::set<Face> select_segment(const Mesh* mesh, unsigned int id);
 
 private:
 	std::set<unsigned int> compute_importance(Mesh* mesh, std::size_t seg_number, double imp_thres);

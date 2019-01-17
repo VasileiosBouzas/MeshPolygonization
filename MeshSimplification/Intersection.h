@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Utils.h"
-#include "StructureGraph.h"
+#include "Segment.h"
 
 
 // Compute supporting planes of segments
@@ -17,7 +17,7 @@ inline std::map<unsigned int, Plane_3> compute_planes(const Mesh* mesh, const Gr
 		id = (*G)[*vb].segment;
 
 		// Select segment by id
-		segment = StructureGraph::select_segment(mesh, id);
+		segment = select_segment(mesh, id);
 
 		// Compute plane for segment
 		plane_map[id] = fit_plane_to_faces(mesh, &segment);

@@ -1,4 +1,5 @@
 #include "StructureGraph.h"
+#include "Segment.h"
 
 
 StructureGraph::StructureGraph()
@@ -19,19 +20,6 @@ Graph StructureGraph::construct(Mesh* mesh, std::size_t seg_number, double imp_t
 	Graph structure_graph = construct_structure_graph(mesh, &important_segments);
 
 	return structure_graph;
-}
-
-
-// Select segment by id
-std::set<Face> StructureGraph::select_segment(const Mesh* mesh, unsigned int id) {
-	std::set<Face> segment;
-
-	FProp_int chart = mesh->property_map<Face, int>("f:chart").first;
-	for (auto face : mesh->faces()) {
-		if (chart[face] == id) { segment.insert(face); }
-	}
-
-	return segment;
 }
 
 

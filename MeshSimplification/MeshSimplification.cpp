@@ -7,6 +7,7 @@
 #include "Planarity.h"
 #include "PlanarSegmentation.h"
 #include "StructureGraph.h"
+#include "Segment.h"
 #include "Simplification.h"
 
 // Functions
@@ -113,7 +114,7 @@ void writeGraph(const Mesh* mesh, const Graph* G, std::string filename) {
 		id = (*G)[*vb].segment;
 
 		// Select segment by id
-		segment = StructureGraph::select_segment(mesh, id);
+		segment = select_segment(mesh, id);
 
 		// Collect segment points
 		for (auto face : segment) {
