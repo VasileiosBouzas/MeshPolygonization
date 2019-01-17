@@ -1,5 +1,7 @@
 #include "Simplification.h"
+#include "Intersection.h"
 #include "AlphaShape.h"
+#include "Orientation.h"
 
 
 Simplification::Simplification()
@@ -51,8 +53,7 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G, double dist_thres) 
 		//points.insert(interior.begin(), interior.end());
 
 		// Sort points
-		AlphaShape as;
-		sorted = as.construct(points, plane);
+		sorted = AlphaShape(points, plane);
 
 		// Define face vertices
 		for (auto point : sorted) {
@@ -93,75 +94,6 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G, double dist_thres) 
 }
 
 
-// Compute supporting planes of segments
-std::map<unsigned int, Plane_3> Simplification::compute_planes(const Mesh* mesh, const Graph* G) {
-	std::map<unsigned int, Plane_3> plane_map;
-
-	// Compute planes for segments
-	Graph_vertex_iterator vb, ve;
-	unsigned int id;
-	std::set<Face> segment;
-	for (boost::tie(vb, ve) = vertices(*G); vb != ve; ++vb) {
-		// Vertex to segment
-		id = (*G)[*vb].segment;
-
-		// Select segment by id
-		segment = StructureGraph::select_segment(mesh, id);
-
-		// Compute plane for segment
-		plane_map[id] = fit_plane_to_faces(mesh, &segment);
-	}
-
-	return plane_map;
-}
-
-
-// Compute plane intersections
-std::set<Point_3> Simplification::compute_intersections(const Graph* G, const Graph_vertex v, std::map<unsigned int, Plane_3>* plane_map) {
-	std::set<Point_3> points;
-
-	unsigned int curr_id, adj_id, other_id;
-	Plane_3 curr_plane, adj_plane, other_plane;
-
-	// Vertex to plane
-	curr_id = (*G)[v].segment;
-	curr_plane = (*plane_map)[curr_id];
-
-	// Find adjacent vertices
-	auto adjacent = boost::adjacent_vertices(v, *G);
-
-	// For every adjacent
-	for (auto adj : make_iterator_range(adjacent)) {
-		// Vertex to plane
-		adj_id = (*G)[adj].segment;
-		adj_plane = (*plane_map)[adj_id];
-
-		// Find adjacent segments of adjacent
-		auto others = boost::adjacent_vertices(adj, *G);
-
-		// For every other plane
-		for (auto other : make_iterator_range(others)) {
-			// Check if edge exists
-			if (adj < other && boost::edge(v, other, *G).second) {
-				// Vertex to plane
-				other_id = (*G)[other].segment;
-				other_plane = (*plane_map)[other_id];
-
-				// Compute intersection fo three planes
-				auto inter = CGAL::intersection(curr_plane, adj_plane, other_plane);
-
-				// Handle intersection
-				if (inter != boost::none) {
-					if (const Point_3* pt = boost::get<Point_3>(&(*inter))) {points.insert(*pt);}
-				}
-			}
-		}
-	}
-
-	return points;
-}
-
-
 // Retrieve interior points
 std::vector<Point_3> Simplification::get_interior_points(const Mesh* mesh, unsigned int id) {
 	std::vector<Point_3> interior;
@@ -198,52 +130,4 @@ std::vector<Point_3> Simplification::get_interior_points(const Mesh* mesh, unsig
 	}
 
 	return interior;
-}
-
-
-// Compute segment orientation
-Vector_3 Simplification::compute_segment_orientation(const Mesh* mesh, unsigned int id) {
-	FProp_int chart = mesh->property_map<Face, int>("f:chart").first;
-	for (auto face : mesh->faces()) {
-		if (chart[face] == id) {
-			return CGAL::Polygon_mesh_processing::compute_face_normal(face, *mesh); 
-		}
-	}
-}
-
-
-// Reverse orientation
-void Simplification::reverse_orientation(Mesh* mesh, Halfedge first) {
-	if (first == Halfedge()) return;
-	Halfedge last = first;
-	Halfedge prev = first;
-	Halfedge start = first;
-	first = mesh->next(first);
-	Vertex  new_v = mesh->target(start);
-	while (first != last) {
-		Vertex  tmp_v = mesh->target(first);
-		mesh->set_target(first, new_v);
-		mesh->set_halfedge(new_v, first);
-		new_v = tmp_v;
-		Halfedge n = mesh->next(first);
-		mesh->set_next(first, prev);
-		prev = first;
-		first = n;
-	}
-	mesh->set_target(start, new_v);
-	mesh->set_halfedge(new_v, start);
-	mesh->set_next(start, prev);
-}
-
-
-// Reverse face orientations
-void Simplification::reverse_face_orientations(Mesh* mesh, Face face) {
-	reverse_orientation(mesh, mesh->halfedge(face));
-
-	for (auto hd : mesh->halfedges_around_face(mesh->halfedge(face))) {
-		Halfedge ohd = mesh->opposite(hd);
-		if (mesh->is_border(ohd) && mesh->target(hd) == mesh->target(ohd)) {
-			reverse_orientation(mesh, ohd);
-		}
-	}
 }
