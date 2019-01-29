@@ -35,15 +35,32 @@ inline std::set<Vertex> get_segment_vertices(const Mesh* mesh, unsigned int id) 
 }
 
 
-//// Compute segment bbox
-//inline Bbox_3 get_segment_bbox(const Mesh* mesh, unsigned int id) {
-//	// Retrieve segmet vertices
-//}
+// Retrieve segment edges
+inline std::vector<Segment_3> get_segment_edges(const Mesh* mesh, unsigned int id) {
+	std::vector<Segment_3> edges;
+
+	// Select segment by id
+	std::set<Face> segment = select_segment(mesh, id);
+
+	// Iterate faces
+	Point_3 source, target;
+	VProp_geom geom = mesh->points();
+	for (auto face : segment) {
+		Halfedge hf = mesh->halfedge(face);
+		for (Halfedge h : halfedges_around_face(hf, *mesh)) {
+			source = geom[mesh->source(h)];
+			target = geom[mesh->target(h)];
+			edges.push_back(Segment_3(source, target));
+		}
+	}
+
+	return edges;
+}
 
 
-// Retrieve boundary points
-inline std::vector<Point_3> get_boundary_points(const Mesh* mesh, unsigned int id) {
-	std::vector<Point_3> boundary;
+// Retrieve interior points
+inline std::vector<Point_3> get_interior_points(const Mesh* mesh, unsigned int id) {
+	std::vector<Point_3> interior;
 
 	// Retrieve segment vertices
 	std::set<Vertex> vertices = get_segment_vertices(mesh, id);
@@ -53,19 +70,19 @@ inline std::vector<Point_3> get_boundary_points(const Mesh* mesh, unsigned int i
 	FProp_int chart = mesh->property_map<Face, int>("f:chart").first;
 	VProp_geom geom = mesh->points();
 	for (auto vertex : vertices) {
-		bool is_out = false;
+		bool is_in = true;
 
 		// Retrieve neighboring vertices
 		neighbors = face_around_vertex(mesh, vertex);
 
 		// Check neighbors
 		for (auto neighbor : neighbors) {
-			if (chart[neighbor] != id) { is_out = true; break; }
+			if (chart[neighbor] != id) { is_in = false; break; }
 		}
 
 		// Add point
-		if (is_out) { boundary.push_back(geom[vertex]); }
+		if (is_in) { interior.push_back(geom[vertex]); }
 	}
 
-	return boundary;
+	return interior;
 }

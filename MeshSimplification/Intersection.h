@@ -29,7 +29,7 @@ inline std::map<unsigned int, Plane_3> compute_planes(const Mesh* mesh, const Gr
 
 // Compute plane intersections
 inline std::set<Point_3> compute_intersections(const Graph* G, const Graph_vertex v, std::map<unsigned int, Plane_3>* plane_map) {
-	std::set<Point_3> points;
+	std::set<Point_3> intersections;
 
 	unsigned int curr_id, adj_id, other_id;
 	Plane_3 curr_plane, adj_plane, other_plane;
@@ -59,15 +59,15 @@ inline std::set<Point_3> compute_intersections(const Graph* G, const Graph_verte
 				other_plane = (*plane_map)[other_id];
 
 				// Compute intersection fo three planes
-				auto inter = CGAL::intersection(curr_plane, adj_plane, other_plane);
+				auto intersection = CGAL::intersection(curr_plane, adj_plane, other_plane);
 
 				// Handle intersection
-				if (inter != boost::none) {
-					if (const Point_3* pt = boost::get<Point_3>(&(*inter))) { points.insert(*pt); }
+				if (intersection != boost::none) {
+					if (const Point_3* pt = boost::get<Point_3>(&(*intersection))) { intersections.insert(*pt); }
 				}
 			}
 		}
 	}
 
-	return points;
+	return intersections;
 }

@@ -24,7 +24,6 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G, double dist_thres) 
 
 	// Define simplified mesh
 	Mesh simplified_mesh;
-	std::set<Point_3> points;
 	Vertex simplified_vertex;
 	std::vector<Vertex> simplified_vertices;
 	VProp_geom geom = simplified_mesh.points();
@@ -32,36 +31,39 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G, double dist_thres) 
 	// Traverse structure graph
 	unsigned int id;
 	Plane_3 plane;
-	std::vector<Point_3> sorted, boundary;
+	std::set<Point_3> intersections;
+	std::vector<Point_3> interior, sorted;
 	double dist = dist_thres * dist_thres;
 	Graph_vertex_iterator vb, ve;
 	for (boost::tie(vb, ve) = vertices(*G); vb != ve; ++vb) {
 		// Compute intersections
-		points = compute_intersections(G, *vb, &plane_map);
+		intersections = compute_intersections(G, *vb, &plane_map);
 
 		// Retrieve segment
 		id = (*G)[*vb].segment;
 		plane = (plane_map)[id];
 
 		// Check intersections
-		for (auto point : points) {
-			if (!is_in_bbox(bbox, point)) { points.erase(point); }
+		for (auto point : intersections) {
+			if (!is_in_bbox(bbox, point)) { intersections.erase(point); }
 		}
-		if (points.size() <= 2) { continue; }
+		if (intersections.size() <= 2) { continue; }
+			 
+		// Retrieve interior points
+		//interior = get_interior_points(mesh, id);
 
-		// Retrieve boundary points
-		/*boundary = get_boundary_points(mesh, id);
-		points.insert(boundary.begin(), boundary.end());*/
+		// Merge interior & intersections
+		interior.insert(interior.end(), intersections.begin(), intersections.end());
 
 		// Sort points
-		sorted = AlphaShape(points, plane);
+		sorted = AlphaShape(mesh, id, &plane, &interior);
 
 		// Define face vertices
 		for (auto point : sorted) {
 			// Check if vertex already exists
 			for (auto vertex : simplified_mesh.vertices()) {
 				// If there is a nearby vertex
-				if (CGAL::squared_distance(geom[vertex], point) < dist_thres) {
+				if (CGAL::squared_distance(geom[vertex], point) < dist) {
 					// Use existent vertex
 					point = geom[vertex]; break;
 				}
@@ -85,6 +87,7 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G, double dist_thres) 
 			}
 		}
 
+		interior.clear();
 		simplified_vertices.clear();
 	}
 
