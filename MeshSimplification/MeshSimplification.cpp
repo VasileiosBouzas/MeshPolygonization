@@ -8,7 +8,7 @@
 #include "PlanarSegmentation.h"
 #include "StructureGraph.h"
 #include "Segment.h"
-#include "Simplification.h"
+//#include "Simplification.h"
 
 // Functions
 void writeGraph(const Mesh* mesh, const Graph* G, std::string filename);
@@ -72,13 +72,13 @@ int main() {
 	end = time(NULL);
 	std::cout << "Structure Graph: " << end - start << " secs" << std::endl;
 
-	// Simplification
-	start = time(NULL);
-	Simplification simpl;
-	Mesh simplified = simpl.apply(&mesh, &structure_graph, dist_thres);
-	// Execution time
-	end = time(NULL);
-	std::cout << "Simplification: " << end - start << " secs" << std::endl;
+	//// Simplification
+	//start = time(NULL);
+	//Simplification simpl;
+	//Mesh simplified = simpl.apply(&mesh, &structure_graph, dist_thres);
+	//// Execution time
+	//end = time(NULL);
+	//std::cout << "Simplification: " << end - start << " secs" << std::endl;
 
 	// Visualize graph
 	writeGraph(&mesh, &structure_graph, filename);
@@ -86,8 +86,8 @@ int main() {
 	// Write original mesh
 	writeMesh(&mesh, filename);
 
-	// Write simplified mesh
-	writeSimplified(&simplified, filename);
+	//// Write simplified mesh
+	//writeSimplified(&simplified, filename);
 
 	return EXIT_SUCCESS;
 }

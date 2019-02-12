@@ -86,3 +86,28 @@ inline std::vector<Point_3> get_interior_points(const Mesh* mesh, unsigned int i
 
 	return interior;
 }
+
+
+// retrieve segment border
+inline std::vector<Halfedge> get_segment_border(const Mesh* mesh, unsigned int id) {
+	std::vector<Halfedge> border;
+
+	// Select segment by id
+	std::set<Face> segment = select_segment(mesh, id);
+
+	// Chart property
+	FProp_int chart = mesh->property_map<Face, int>("f:chart").first;
+
+	// Iterate segment faces
+	Face opp_face;
+	for (auto face : segment) {
+		// Halfedfge around target circulator
+		Halfedge hf = mesh->halfedge(face);
+		for (Halfedge h : halfedges_around_face(hf, *mesh)) {
+			opp_face = mesh->face(mesh->opposite(h));
+			if (opp_face != mesh->null_face() && chart[opp_face] != id) { border.push_back(h); }
+		}
+	}
+
+	return border;
+}

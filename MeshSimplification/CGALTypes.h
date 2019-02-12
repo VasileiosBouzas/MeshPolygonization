@@ -15,34 +15,22 @@
 #include <CGAL/boost/graph/Face_filtered_graph.h>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
-#include <CGAL/Alpha_shape_2.h>
-#include <CGAL/Alpha_shape_vertex_base_2.h>
-#include <CGAL/Alpha_shape_face_base_2.h>
-#include <CGAL/Delaunay_triangulation_2.h>
-#include <CGAL/Triangle_2.h>
-#include <CGAL/Polygon_2.h>
-#include <CGAL/Vector_2.h>
 
 
 // GEOMETRY //
 typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
 
 // 2D // 
+struct FaceInfo2 {
+	FaceInfo2() {}
+	bool in_domain = false;
+};
 typedef Kernel::Point_2                                     Point_2;
 typedef Kernel::Segment_2                                   Segment_2;
 typedef Kernel::Triangle_2                                  Triangle_2;
-typedef CGAL::Polygon_2<Kernel>                             Polygon_2;
 typedef Kernel::Vector_2                                    Vector_2;
-typedef CGAL::Alpha_shape_vertex_base_2<Kernel>             Vb;
-typedef CGAL::Alpha_shape_face_base_2<Kernel>               Fb;
-typedef CGAL::Triangulation_data_structure_2<Vb, Fb>        Tds;
-typedef CGAL::Delaunay_triangulation_2<Kernel, Tds>         Triangulation_2;
-typedef CGAL::Alpha_shape_2<Triangulation_2>                Alpha_shape_2;
-typedef Alpha_shape_2::Alpha_iterator                       Alpha_iterator;
-typedef Alpha_shape_2::Alpha_shape_vertices_iterator        Alpha_shape_vertices_iterator;
-typedef Alpha_shape_2::Alpha_shape_edges_iterator           Alpha_shape_edges_iterator;
-typedef Triangulation_2::Finite_faces_iterator              Finite_faces_iterator;
 // 2D //
+
 
 // 3D //
 typedef Kernel::Point_3                                     Point_3;
