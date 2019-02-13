@@ -128,11 +128,24 @@ inline Plane_3 fit_plane_to_faces(const Mesh* mesh, std::set<Face>* faces) {
 }
 
 // Point in Bbox
-inline bool is_in_bbox(const Bbox_3 bbox, const Point_3 pt) {
+inline bool is_in_bbox(const Bbox_3* bbox, const Point_3* pt) {
+	// Bbox dimensions
+	double x = std::abs(bbox->xmax() - bbox->xmin());
+	double y = std::abs(bbox->ymax() - bbox->ymin());
+	double z = std::abs(bbox->zmax() - bbox->zmin());
 
-	if (pt.x() >= bbox.xmin() && pt.x() <= bbox.xmax()) {
-		if (pt.y() >= bbox.ymin() && pt.y() <= bbox.ymax()) {
-			if (pt.z() >= bbox.zmin() && pt.z() <= bbox.zmax()) {
+	// Extend bbox
+	double offset = 1e-05; // Arithmetic precision
+	double xmin = bbox->xmin() - offset * x;
+	double xmax = bbox->xmax() + offset * x;
+	double ymin = bbox->ymin() - offset * y;
+	double ymax = bbox->ymax() + offset * y;
+	double zmin = bbox->zmin() - offset * z;
+	double zmax = bbox->zmax() + offset * z;
+
+	if (pt->x() >= xmin && pt->x() <= xmax) {
+		if (pt->y() >= ymin && pt->y() <= ymax) {
+			if (pt->z() >= zmin && pt->z() <= zmax) {
 				return true;
 			}
 		}
@@ -140,4 +153,28 @@ inline bool is_in_bbox(const Bbox_3 bbox, const Point_3 pt) {
 
 	return false;
 }
-// GENERAL FUNCTIONS //
+
+// Bbox Planes
+inline std::vector<Plane_3> compute_bbox_planes(const Bbox_3* bbox) {
+	std::vector<Plane_3> planes;
+
+	// Define bbox vertices
+	Point_3 p0(bbox->xmin(), bbox->ymin(), bbox->zmin()); // 0
+	Point_3 p1(bbox->xmin(), bbox->ymax(), bbox->zmin()); // 1
+	Point_3 p2(bbox->xmin(), bbox->ymin(), bbox->zmax()); // 2
+	Point_3 p3(bbox->xmin(), bbox->ymax(), bbox->zmax()); // 3
+	Point_3 p4(bbox->xmax(), bbox->ymin(), bbox->zmin()); // 4
+	Point_3 p5(bbox->xmax(), bbox->ymax(), bbox->zmin()); // 5
+	Point_3 p6(bbox->xmax(), bbox->ymin(), bbox->zmax()); // 6
+	Point_3 p7(bbox->xmax(), bbox->ymax(), bbox->zmax()); // 7
+
+	// Construct planes
+	planes.push_back(Plane_3(p0, p1, p4)); // XY-min (zmin)
+	planes.push_back(Plane_3(p2, p3, p6)); // XY-max (zmax)
+	planes.push_back(Plane_3(p0, p2, p4)); // XZ-min (ymin)
+	planes.push_back(Plane_3(p1, p3, p5)); // XZ-max (ymax)
+	planes.push_back(Plane_3(p0, p1, p2)); // YZ-min (xmin)
+	planes.push_back(Plane_3(p4, p5, p6)); // YZ-max (xmax)
+
+	return planes;
+}
