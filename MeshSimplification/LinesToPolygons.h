@@ -24,5 +24,4 @@ inline std::vector<Segment_2> project_segments(Plane_3* plane, std::vector<Segme
 inline void segments_to_polygons(Plane_3* plane, std::vector<Segment_3>* segments) {
 	// Project segments on plane
 	std::vector<Segment_2> segments_2d = project_segments(plane, segments);
-
 }

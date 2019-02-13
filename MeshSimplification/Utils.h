@@ -135,13 +135,13 @@ inline bool is_in_bbox(const Bbox_3* bbox, const Point_3* pt) {
 	double z = std::abs(bbox->zmax() - bbox->zmin());
 
 	// Extend bbox
-	double offset = 1e-05; // Arithmetic precision
-	double xmin = bbox->xmin() - offset * x;
-	double xmax = bbox->xmax() + offset * x;
-	double ymin = bbox->ymin() - offset * y;
-	double ymax = bbox->ymax() + offset * y;
-	double zmin = bbox->zmin() - offset * z;
-	double zmax = bbox->zmax() + offset * z;
+	double offset = 1e-04; // Arithmetic precision
+	double xmin = bbox->xmin() - offset;
+	double xmax = bbox->xmax() + offset;
+	double ymin = bbox->ymin() - offset;
+	double ymax = bbox->ymax() + offset;
+	double zmin = bbox->zmin() - offset;
+	double zmax = bbox->zmax() + offset;
 
 	if (pt->x() >= xmin && pt->x() <= xmax) {
 		if (pt->y() >= ymin && pt->y() <= ymax) {

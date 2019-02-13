@@ -45,10 +45,10 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 		segments = clip_lines(&lines, &bbox);
 
 		// Segments to polygons
-		segments_to_polygons(&plane, &segments);
+		//segments_to_polygons(&plane, &segments);
 
 		// Draw segments
-		//draw_segments(&segments, id);
+		draw_segments(&segments, id);
 	}
 	
 	// Define simplified mesh
