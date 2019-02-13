@@ -22,24 +22,33 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 	Bbox_3 bbox = CGAL::Polygon_mesh_processing::bbox(*mesh);
 
 	// Traverse structure graph
-	std::vector<Line_3> lines;
+	unsigned int id;
+	Plane_3 plane;
+	std::vector<Line_3> lines, bbox_lines;
 	std::vector<Segment_3> segments;
-	Graph_vertex_iterator vb, ve;
 
 	// For each segment
-	unsigned int id;
+	Graph_vertex_iterator vb, ve;
 	for (boost::tie(vb, ve) = vertices(*G); vb != ve; ++vb) {
 		// Vertex to segment
 		id = (*G)[*vb].segment;
+		plane = plane_map[id];
 
 		// Supporting-adjacent plane intersections
 		lines = compute_intersections(G, *vb, &plane_map);
 
+		// Supporting-bbox plane intersections
+		bbox_lines = compute_bbox_intersections(&bbox, &plane);
+		lines.insert(lines.end(), bbox_lines.begin(), bbox_lines.end());
+
 		// Clip lines with bbox
 		segments = clip_lines(&lines, &bbox);
 
+		// Segments to polygons
+		segments_to_polygons(&plane, &segments);
+
 		// Draw segments
-		draw_segments(&segments, id);
+		//draw_segments(&segments, id);
 	}
 	
 	// Define simplified mesh

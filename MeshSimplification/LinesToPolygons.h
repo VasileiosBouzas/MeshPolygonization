@@ -2,25 +2,27 @@
 
 #include "Utils.h"
 
-inline std::vector<Point_2> compute_line_intersections(Plane_3* plane, std::vector<Line_3>* lines) {
-	std::vector<Point_2> points;
+// Convert 3D segments to 2D segments
+inline std::vector<Segment_2> project_segments(Plane_3* plane, std::vector<Segment_3>* segments) {
+	std::vector<Segment_2> segments_2d;
 
-	// Compute line intersections
-	for (auto curr_line : *lines) {
-		for (auto other_line : *lines) {
-			// Compute intersecting point
-			if (curr_line == other_line) { continue; }
-			auto intersection = CGAL::intersection(curr_line, other_line);
+	// Project segment to 2D
+	Point_2 source, target;
+	for (auto segment : *segments) {
+		// Project source-target on plane
+		source = plane->to_2d(segment.source());
+		target = plane->to_2d(segment.target());
 
-			// Handle intersection
-			if (intersection != boost::none) {
-				std::cout << "INTERSECTION!" << std::endl;
-				if (const Point_3* pt = boost::get<Point_3>(&(*intersection))) { 
-					std::cout << *pt << std::endl; 
-				}
-			}
-		}
+		// Add 2D segment
+		segments_2d.push_back(Segment_2(source, target));
 	}
 
-	return points;
+	return segments_2d;
+}
+
+
+inline void segments_to_polygons(Plane_3* plane, std::vector<Segment_3>* segments) {
+	// Project segments on plane
+	std::vector<Segment_2> segments_2d = project_segments(plane, segments);
+
 }

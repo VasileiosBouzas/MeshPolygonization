@@ -29,7 +29,7 @@ inline std::map<unsigned int, Plane_3> compute_planes(const Mesh* mesh, const Gr
 
 // Compute plane intersections
 inline std::vector<Line_3> compute_intersections(const Graph* G, const Graph_vertex v, std::map<unsigned int, Plane_3>* plane_map) {
-	std::vector<Line_3> intersections;
+	std::vector<Line_3> lines;
 
 	unsigned int curr_id, adj_id;
 	Plane_3 curr_plane, adj_plane;
@@ -52,11 +52,33 @@ inline std::vector<Line_3> compute_intersections(const Graph* G, const Graph_ver
 
 		// Handle intersection
 		if (intersection != boost::none) {
-			if (const Line_3* line = boost::get<Line_3>(&(*intersection))) { intersections.push_back(*line); }
+			if (const Line_3* line = boost::get<Line_3>(&(*intersection))) { lines.push_back(*line); }
 		}
 	}
 
-	return intersections;
+	return lines;
+}
+
+
+// Compute bbox - supporting plane intesections
+inline std::vector<Line_3> compute_bbox_intersections(const Bbox_3* bbox, Plane_3* plane) {
+	std::vector<Line_3> lines;
+
+	// Compute bbox planes
+	std::vector<Plane_3> bbox_planes = compute_bbox_planes(bbox);
+
+	// For every plane
+	for (auto bbox_plane : bbox_planes) {
+		// Compute intersecting line
+		auto intersection = CGAL::intersection(*plane, bbox_plane);
+
+		// Handle intersection
+		if (intersection != boost::none) {
+			if (const Line_3* line = boost::get<Line_3>(&(*intersection))) { lines.push_back(*line); }
+		}
+	}
+
+	return lines;
 }
 
 
