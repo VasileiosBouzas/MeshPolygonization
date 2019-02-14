@@ -129,11 +129,6 @@ inline Plane_3 fit_plane_to_faces(const Mesh* mesh, std::set<Face>* faces) {
 
 // Point in Bbox
 inline bool is_in_bbox(const Bbox_3* bbox, const Point_3* pt) {
-	// Bbox dimensions
-	double x = std::abs(bbox->xmax() - bbox->xmin());
-	double y = std::abs(bbox->ymax() - bbox->ymin());
-	double z = std::abs(bbox->zmax() - bbox->zmin());
-
 	// Extend bbox
 	double offset = 1e-04; // Arithmetic precision
 	double xmin = bbox->xmin() - offset;

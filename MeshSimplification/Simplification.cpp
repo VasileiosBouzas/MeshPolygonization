@@ -38,17 +38,14 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 		lines = compute_intersections(G, *vb, &plane_map);
 
 		// Supporting-bbox plane intersections
-		bbox_lines = compute_bbox_intersections(&bbox, &plane);
-		lines.insert(lines.end(), bbox_lines.begin(), bbox_lines.end());
+		//bbox_lines = compute_bbox_intersections(&bbox, &plane);
+		//lines.insert(lines.end(), bbox_lines.begin(), bbox_lines.end());
 
 		// Clip lines with bbox
 		segments = clip_lines(&lines, &bbox);
 
 		// Segments to polygons
-		//segments_to_polygons(&plane, &segments);
-
-		// Draw segments
-		draw_segments(&segments, id);
+		segments_to_polygons(&plane, &segments, id);
 	}
 	
 	// Define simplified mesh
