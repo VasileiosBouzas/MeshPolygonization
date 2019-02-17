@@ -78,3 +78,15 @@ typedef Graph::vertex_iterator   Graph_vertex_iterator;
 typedef Graph::edge_descriptor   Graph_edge;
 typedef Graph::edge_iterator     Graph_edge_iterator;
 // GRAPH //
+
+
+// 2D ARRANGEMENT //
+#include <CGAL/Arr_segment_traits_2.h>
+#include <CGAL/Arrangement_2.h>
+
+typedef CGAL::Arr_segment_traits_2<Kernel>     Traits_2;
+typedef CGAL::Arrangement_2<Traits_2>          Arrangement_2;
+typedef Traits_2::X_monotone_curve_2		   X_monotone_curve_2;
+typedef Arrangement_2::Face_iterator           Face_iterator;
+typedef Arrangement_2::Ccb_halfedge_circulator Ccb_halfedge_circulator;
+// 2D ARRANGEMENT //
