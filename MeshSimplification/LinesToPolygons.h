@@ -77,38 +77,13 @@ inline std::vector<Segment_2> split_segments(std::vector<Segment_2>* segments) {
 }
 
 
-inline std::vector<Segment_2> filter_segments(std::vector<Segment_2>* segments) {
-	std::vector<Segment_2> filtered;
+// Construct simple polygons
+inline std::vector<Polygon_2> construct_polygons(std::vector<Segment_2>* segments) {
+	std::vector<Polygon_2> polygons;
 
-	Point_2 source, target;
-	for (auto segment_1 : *segments) {
-		source = segment_1.source();
-		target = segment_1.target();
-
-		bool source_connected = false;
-		bool target_connected = false;
-		for (auto segment_2: *segments) {
-			if (segment_1 == segment_2) { continue; }
-			if (segment_2.source() == source || segment_2.target() == source) { source_connected = true; }
-			if (segment_2.source() == target || segment_2.target() == target) { target_connected = true; }
-			if (source_connected && target_connected) { filtered.push_back(segment_1); break; }
-		}
-	}
-
-	return filtered;
-}
-
-
-inline void segments_to_polygons(Plane_3* plane, std::vector<Segment_3>* segments, unsigned int id) {
-	// Project segments on plane
-	std::vector<Segment_2> segments_2d = project_segments(plane, segments);
-
-	// Split segments into subsegments
-	std::vector<Segment_2> sub_segments = split_segments(&segments_2d);
-	
 	// Construct 2D arrangement
 	Arrangement_2 arr;
-	CGAL::insert_non_intersecting_curves(arr, sub_segments.begin(), sub_segments.end());
+	CGAL::insert_non_intersecting_curves(arr, segments->begin(), segments->end());
 
 	// Iterate arrangement faces
 	X_monotone_curve_2 cv;
@@ -127,11 +102,28 @@ inline void segments_to_polygons(Plane_3* plane, std::vector<Segment_3>* segment
 			bool curve_has_same_direction = (cc->curve().source() == cc->source()->point());
 
 			// If same orientation
-			if (curve_has_same_direction) { points.push_back(cv.source()); } 
+			if (curve_has_same_direction) { points.push_back(cv.source()); }
 			else { points.push_back(cv.target()); }
-
 		} while (++cc != f->outer_ccb());
+
+		// Construct polygon
+		polygons.push_back(Polygon_2(points.begin(), points.end()));
+		points.clear();
 	}
 
-	std::cout << std::endl;
+	return polygons;
+}
+
+
+inline std::vector<Polygon_2> segments_to_polygons(Plane_3* plane, std::vector<Segment_3>* segments, unsigned int id) {
+	// Project segments on plane
+	std::vector<Segment_2> segments_2d = project_segments(plane, segments);
+
+	// Split segments into subsegments
+	std::vector<Segment_2> sub_segments = split_segments(&segments_2d);
+
+	// Construct simple polygons
+	std::vector<Polygon_2> polygons = construct_polygons(&sub_segments);
+
+	return polygons;
 }

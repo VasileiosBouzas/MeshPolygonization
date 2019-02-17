@@ -26,6 +26,7 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 	Plane_3 plane;
 	std::vector<Line_3> lines, bbox_lines;
 	std::vector<Segment_3> segments;
+	std::vector<Polygon_2> polygons;
 
 	// For each segment
 	Graph_vertex_iterator vb, ve;
@@ -44,8 +45,8 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 		// Clip lines with bbox
 		segments = clip_lines(&lines, &bbox);
 
-		// Segments to polygons
-		segments_to_polygons(&plane, &segments, id);
+		// Segments to 2D polygons
+		polygons = segments_to_polygons(&plane, &segments, id);
 	}
 	
 	// Define simplified mesh

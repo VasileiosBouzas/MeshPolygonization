@@ -15,6 +15,7 @@
 #include <CGAL/boost/graph/Face_filtered_graph.h>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
+#include <CGAL/Polygon_2.h>
 
 
 // GEOMETRY //
@@ -29,6 +30,7 @@ typedef Kernel::Point_2                                     Point_2;
 typedef Kernel::Segment_2                                   Segment_2;
 typedef Kernel::Triangle_2                                  Triangle_2;
 typedef Kernel::Vector_2                                    Vector_2;
+typedef CGAL::Polygon_2<Kernel>                             Polygon_2;
 // 2D //
 
 
