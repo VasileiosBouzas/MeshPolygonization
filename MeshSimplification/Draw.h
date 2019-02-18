@@ -68,3 +68,42 @@ inline void draw_polygons(std::vector<Polygon_2>* polygons, unsigned int id) {
 		n++;
 	}
 }
+
+
+// Draw mesh segment
+inline void draw_mesh_segment(std::vector<Polygon_2>* faces, unsigned int id) {
+	// Open file
+	std::ostringstream oss;
+	oss << "draw/segments/seg_" << id << ".obj";
+	std::ofstream os(oss.str().data());
+
+	// Collect segment points
+	std::set<Point_2> points;
+	for (auto face : *faces) {
+		// Recover faces vertices
+		for (Polygon_2::Vertex_const_iterator v = face.vertices_begin(); v != face.vertices_end(); ++v) {
+			// Insert vertex
+			points.insert(*v);
+		}
+	}
+
+	// Store segment vertices
+	std::map<Point_2, int> vertex_map;
+	int num = 1;
+	for (auto point : points) {
+		vertex_map[point] = num;
+		num++;
+		os << "v " << point.x() << " " << point.y() << " " << 0.0 << std::endl;
+	}
+
+	// Store segment edges
+	for (auto face : *faces) {
+		// Recover face edges
+		for (Polygon_2::Edge_const_iterator e = face.edges_begin(); e != face.edges_end(); ++e) {
+			os << "l " << vertex_map[e->source()] << " " << vertex_map[e->target()] << std::endl;
+		}
+	}
+
+	// Close file
+	os.close();
+}

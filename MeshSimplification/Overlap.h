@@ -31,6 +31,7 @@ inline std::vector<Polygon_2> project_segment_faces(const Mesh* mesh, unsigned i
 
 		// Add triangle
 		polygons.push_back(polygon);
+		points.clear();
 	}
 
 	return polygons;
@@ -41,6 +42,7 @@ inline std::vector<Polygon_2> project_segment_faces(const Mesh* mesh, unsigned i
 inline void define_face(const Mesh* mesh, unsigned int id, Plane_3* plane, std::vector<Polygon_2>* polygons) {
 	// Project segment faces to 2D polygons
 	std::vector<Polygon_2> faces = project_segment_faces(mesh, id, plane);
+	draw_mesh_segment(&faces, id);
 }
 
 
