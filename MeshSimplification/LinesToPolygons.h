@@ -88,6 +88,7 @@ inline std::vector<Polygon_2> construct_polygons(std::vector<Segment_2>* segment
 	// Iterate arrangement faces
 	X_monotone_curve_2 cv;
 	std::vector<Point_2> points;
+	std::vector<Polygon_2> polygon;
 	for (Face_iterator f = arr.faces_begin(); f != arr.faces_end(); ++f) {
 		// Check if face is unbounded
 		if (f->is_unbounded()) { continue; }
@@ -107,7 +108,8 @@ inline std::vector<Polygon_2> construct_polygons(std::vector<Segment_2>* segment
 		} while (++cc != f->outer_ccb());
 
 		// Construct polygon
-		polygons.push_back(Polygon_2(points.begin(), points.end()));
+		Polygon_2 polygon(points.begin(), points.end());
+		polygons.push_back(polygon);
 		points.clear();
 	}
 
@@ -121,9 +123,11 @@ inline std::vector<Polygon_2> segments_to_polygons(Plane_3* plane, std::vector<S
 
 	// Split segments into subsegments
 	std::vector<Segment_2> sub_segments = split_segments(&segments_2d);
+	draw_line_segments(&sub_segments, id);
 
 	// Construct simple polygons
 	std::vector<Polygon_2> polygons = construct_polygons(&sub_segments);
+	draw_polygons(&polygons, id);
 
 	return polygons;
 }

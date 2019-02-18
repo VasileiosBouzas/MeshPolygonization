@@ -2,6 +2,7 @@
 #include "Segment.h"
 #include "Intersection.h"
 #include "LinesToPolygons.h"
+#include "Overlap.h"
 #include "Draw.h"
 
 Simplification::Simplification()
@@ -47,6 +48,9 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 
 		// Segments to 2D polygons
 		polygons = segments_to_polygons(&plane, &segments, id);
+
+		// Define simplified face
+		define_face(mesh, id, &plane, &polygons);
 	}
 	
 	// Define simplified mesh
