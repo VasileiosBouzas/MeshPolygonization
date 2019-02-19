@@ -16,16 +16,14 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <CGAL/Polygon_2.h>
+#include <CGAL/Polygon_2_algorithms.h>
+#include <CGAL/convex_hull_2.h>
 
 
 // GEOMETRY //
 typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
 
-// 2D // 
-struct FaceInfo2 {
-	FaceInfo2() {}
-	bool in_domain = false;
-};
+// 2D //
 typedef Kernel::Point_2                                     Point_2;
 typedef Kernel::Segment_2                                   Segment_2;
 typedef Kernel::Triangle_2                                  Triangle_2;
