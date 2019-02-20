@@ -2,6 +2,7 @@
 
 #include "Utils.h"
 #include "Segment.h"
+#include "LinesToPolygons.h"
 #include "Draw.h"
 
 
@@ -44,7 +45,6 @@ inline bool check_overlap(Polygon_2* polygon, std::vector<Polygon_2>* faces) {
 
 	// Iterate segment faces
 	for (auto face : *faces) {
-		
 		// Check for bbox overlap
 		if (do_overlap(polygon->bbox(), face.bbox())) {
 			bool is_inside = true;
@@ -54,7 +54,7 @@ inline bool check_overlap(Polygon_2* polygon, std::vector<Polygon_2>* faces) {
 			Polygon_2::Vertex_const_iterator v;
 			// For every face vertex
 			for (v = face.vertices_begin(); v != face.vertices_end(); ++v) {
-				// Check its position with respect to the polygon
+				// Check its position with respect to polygon
 				auto check = CGAL::bounded_side_2(polygon->vertices_begin(), polygon->vertices_end(), *v);
 
 				// If it is inside or on the boundary, store it
@@ -101,25 +101,56 @@ inline bool check_overlap(Polygon_2* polygon, std::vector<Polygon_2>* faces) {
 		}
 	}
 
-	std::cout << area / std::abs(polygon->area()) << std::endl;
 	if (area / std::abs(polygon->area()) >= 0.8) { return true; }
 	return false;
 }
 
 
 // Define simplified face
-inline void define_face(const Mesh* mesh, unsigned int id, Plane_3* plane, std::vector<Polygon_2>* polygons) {
+inline std::vector<Point_3> define_face(const Mesh* mesh, unsigned int id, Plane_3* plane, std::vector<Polygon_2>* polygons) {
 	// Project segment faces to 2D polygons
 	std::vector<Polygon_2> faces = project_segment_faces(mesh, id, plane);
 	//draw_mesh_segment(&faces, id);
 
 	// Check overlapping
-	std::cout << "SEGMENT " << id << std::endl;
+	std::vector<Segment_2> edges;
 	for (auto polygon : *polygons) {
 		// If face overlaps with segment
-		check_overlap(&polygon, &faces);
+		if (check_overlap(&polygon, &faces)) {
+			for (auto e = polygon.edges_begin(); e != polygon.edges_end(); ++e) {
+				edges.push_back(*e);
+			}
+		}
 	}
-	std::cout << std::endl;
+
+	// Recover non-common edges
+	std::vector<Segment_2>::iterator it;
+	std::vector<Segment_2> selected;
+	for (auto edge : edges) {
+		// Check if opposite edge exists
+		it = std::find(edges.begin(), edges.end(), edge.opposite());
+		// If not...
+		if (it == edges.end()) {
+			// Add edge
+			selected.push_back(edge); 
+		}
+	}
+
+	// Recover all rings
+	std::vector<Polygon_2> rings = construct_polygons(&selected);
+	if (rings.size() > 0) {
+		auto max_ring = std::max_element(rings.begin(), rings.end(),
+			                             [&](const Polygon_2 &a, const Polygon_2 &b)
+		                                 { return a.area() < b.area(); });
+		draw_face(&*max_ring, id);
+	}
+
+	std::vector<Point_3> points_3d;
+	/*for (auto point : points_2d) {
+		points_3d.push_back(plane->to_3d(point));
+	}*/
+
+	return points_3d;
 }
 
 

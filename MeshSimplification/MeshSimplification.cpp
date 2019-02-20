@@ -86,8 +86,8 @@ int main() {
 	// Write original mesh
 	writeMesh(&mesh, filename);
 
-	//// Write simplified mesh
-	//writeSimplified(&simplified, filename);
+	// Write simplified mesh
+	writeSimplified(&simplified, filename);
 
 	return EXIT_SUCCESS;
 }

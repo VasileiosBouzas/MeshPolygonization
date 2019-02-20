@@ -19,8 +19,13 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 	// Plane map
 	std::map<unsigned int, Plane_3> plane_map = compute_planes(mesh, G);
 	
-	// Compute mesh bbox
+	// Compute bbox of original mesh
 	Bbox_3 bbox = CGAL::Polygon_mesh_processing::bbox(*mesh);
+
+	// Define simplified mesh
+	Mesh simplified_mesh;
+	Vertex simplified_vertex;
+	std::vector<Vertex> simplified_vertices;
 
 	// Traverse structure graph
 	unsigned int id;
@@ -28,6 +33,7 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 	std::vector<Line_3> lines, bbox_lines;
 	std::vector<Segment_3> segments;
 	std::vector<Polygon_2> polygons;
+	std::vector<Point_3> points;
 
 	// For each segment
 	Graph_vertex_iterator vb, ve;
@@ -50,11 +56,16 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 		polygons = segments_to_polygons(&plane, &segments, id);
 
 		// Define simplified face
-		define_face(mesh, id, &plane, &polygons);
+		points = define_face(mesh, id, &plane, &polygons);
+
+		/*for (auto point : points) {
+			simplified_vertex = simplified_mesh.add_vertex(point);
+			simplified_vertices.push_back(simplified_vertex);
+		}
+
+		simplified_mesh.add_face(simplified_vertices);
+		simplified_vertices.clear();*/
 	}
-	
-	// Define simplified mesh
-	Mesh simplified_mesh;
 
 	return simplified_mesh;
 }
