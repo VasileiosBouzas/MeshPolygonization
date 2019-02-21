@@ -10,24 +10,26 @@ inline std::vector<Segment_2> project_segments(Plane_3* plane, std::vector<Segme
 
 	// Project segment to 2D
 	Point_2 source, target;
-	std::vector<Point_2> existing_points;
+	std::vector<Segment_2> existing_segments;
 	for (auto segment : *segments) {
 		// Project source-target on plane
 		source = plane->to_2d(segment.source());
 		target = plane->to_2d(segment.target());
 
-		// Check for overlaps
-		int exists = 0;
-		for (auto point : existing_points) {
-			if (CGAL::squared_distance(source, point) < 0.01) { exists++; }
-			if (CGAL::squared_distance(target, point) < 0.01) { exists++; }
+		// Check for overlapping segments
+		bool exists = false;
+		for (auto existing : existing_segments) {
+			if ((CGAL::squared_distance(existing.source(), source) < 0.01 &&
+				 CGAL::squared_distance(existing.target(), target) < 0.01) ||
+				(CGAL::squared_distance(existing.source(), target) < 0.01 &&
+				 CGAL::squared_distance(existing.target(), source) < 0.01))
+			exists = true;
 		}
 
 		// Add 2D segment
-		if (exists != 2) {
+		if (!exists) {
 			segments_2d.push_back(Segment_2(source, target));
-			existing_points.push_back(source);
-			existing_points.push_back(target);
+			existing_segments.push_back(Segment_2(source, target));
 		}
 	}
 
@@ -123,7 +125,7 @@ inline std::vector<Polygon_2> segments_to_polygons(Plane_3* plane, std::vector<S
 
 	// Split segments into subsegments
 	std::vector<Segment_2> sub_segments = split_segments(&segments_2d);
-	//draw_line_segments(&sub_segments, id);
+	draw_line_segments(&sub_segments, id);
 
 	// Construct simple polygons
 	std::vector<Polygon_2> polygons = construct_polygons(&sub_segments);

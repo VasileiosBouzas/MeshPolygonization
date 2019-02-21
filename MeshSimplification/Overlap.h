@@ -101,7 +101,7 @@ inline bool check_overlap(Polygon_2* polygon, std::vector<Polygon_2>* faces) {
 		}
 	}
 
-	if (area / std::abs(polygon->area()) >= 0.8) { return true; }
+	if (area / std::abs(polygon->area()) >= 0.4) { return true; }
 	return false;
 }
 
@@ -137,18 +137,18 @@ inline std::vector<Point_3> define_face(const Mesh* mesh, unsigned int id, Plane
 	}
 
 	// Recover all rings
+	std::vector<Point_3> points_3d;
 	std::vector<Polygon_2> rings = construct_polygons(&selected);
 	if (rings.size() > 0) {
 		auto max_ring = std::max_element(rings.begin(), rings.end(),
-			                             [&](const Polygon_2 &a, const Polygon_2 &b)
-		                                 { return a.area() < b.area(); });
-		draw_face(&*max_ring, id);
-	}
+			[&](const Polygon_2 &a, const Polygon_2 &b)
+		{ return a.area() < b.area(); });
+		//draw_face(&*max_ring, id);
 
-	std::vector<Point_3> points_3d;
-	/*for (auto point : points_2d) {
-		points_3d.push_back(plane->to_3d(point));
-	}*/
+		for (auto v = max_ring->vertices_begin(); v != max_ring->vertices_end(); ++v) {
+			points_3d.push_back(plane->to_3d(*v));
+		}
+	}
 
 	return points_3d;
 }

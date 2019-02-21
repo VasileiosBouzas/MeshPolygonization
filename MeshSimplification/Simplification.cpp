@@ -58,13 +58,15 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 		// Define simplified face
 		points = define_face(mesh, id, &plane, &polygons);
 
-		/*for (auto point : points) {
-			simplified_vertex = simplified_mesh.add_vertex(point);
-			simplified_vertices.push_back(simplified_vertex);
+		if (points.size() > 0) {
+			for (auto point : points) {
+				simplified_vertex = simplified_mesh.add_vertex(point);
+				simplified_vertices.push_back(simplified_vertex);
+			}
+			simplified_mesh.add_face(simplified_vertices);
 		}
 
-		simplified_mesh.add_face(simplified_vertices);
-		simplified_vertices.clear();*/
+		simplified_vertices.clear();
 	}
 
 	return simplified_mesh;
