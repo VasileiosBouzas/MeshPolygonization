@@ -125,7 +125,7 @@ inline std::vector<Polygon_2> segments_to_polygons(Plane_3* plane, std::vector<S
 
 	// Split segments into subsegments
 	std::vector<Segment_2> sub_segments = split_segments(&segments_2d);
-	draw_line_segments(&sub_segments, id);
+	//draw_line_segments(&sub_segments, id);
 
 	// Construct simple polygons
 	std::vector<Polygon_2> polygons = construct_polygons(&sub_segments);

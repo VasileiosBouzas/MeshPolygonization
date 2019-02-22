@@ -18,8 +18,6 @@
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Polygon_2_algorithms.h>
 #include <CGAL/convex_hull_2.h>
-#include <CGAL/Polygon_with_holes_2.h>
-#include <CGAL/Polygon_set_2.h>
 
 
 // GEOMETRY //
@@ -31,8 +29,6 @@ typedef Kernel::Segment_2                                   Segment_2;
 typedef Kernel::Triangle_2                                  Triangle_2;
 typedef Kernel::Vector_2                                    Vector_2;
 typedef CGAL::Polygon_2<Kernel>                             Polygon_2;
-typedef CGAL::Polygon_with_holes_2<Kernel>                  Polygon_with_holes_2;
-typedef CGAL::Polygon_set_2<Kernel>                         Polygon_set_2;
 // 2D //
 
 

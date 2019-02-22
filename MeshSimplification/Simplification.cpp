@@ -18,7 +18,7 @@ Simplification::~Simplification()
 Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 	// Plane map
 	std::map<unsigned int, Plane_3> plane_map = compute_planes(mesh, G);
-	
+
 	// Compute bbox of original mesh
 	Bbox_3 bbox = CGAL::Polygon_mesh_processing::bbox(*mesh);
 
@@ -58,7 +58,7 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 		// Define simplified face
 		points = define_face(mesh, id, &plane, &polygons);
 
-		if (points.size() > 0) {
+		if (points.size() >= 3) {
 			for (auto point : points) {
 				simplified_vertex = simplified_mesh.add_vertex(point);
 				simplified_vertices.push_back(simplified_vertex);
