@@ -9,6 +9,6 @@ public:
 	Simplification();
 	~Simplification();
 
-	Mesh apply(const Mesh* mesh, const Graph* G);
+	Mesh apply(const Mesh* mesh, const Graph* G, std::string filename);
 };
 

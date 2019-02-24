@@ -141,3 +141,31 @@ inline void draw_face(Polygon_2* polygon, unsigned int id) {
 	// Close file
 	os.close();
 }
+
+
+// Draw mesh skeleton
+inline void draw_skeleton(std::vector<Point_3>* points, std::vector<std::vector<size_t>>* faces, std::string filename) {
+	// Open file
+	std::ostringstream oss;
+	oss << "draw/skeletons/" << filename << ".obj";
+	std::ofstream os(oss.str().data());
+
+	// Store skeleton vertices
+	std::map<Point_3, int> vertex_map;
+	int num = 1;
+	for (auto point : *points) {
+		vertex_map[point] = num;
+		num++;
+		os << "v " << point.x() << " " << point.y() << " " << point.z() << std::endl;
+	}
+
+	// Store skeleton faces
+	for (auto face : *faces) {
+		for (std::size_t i = 0, ii = 1; i < face.size(); ++i, ++ii, ii %= face.size()) {
+			os << "l " << vertex_map[(*points)[face[i]]] << " " << vertex_map[(*points)[face[ii]]] << std::endl;
+		}
+	}
+
+	// Close file
+	os.close();
+}

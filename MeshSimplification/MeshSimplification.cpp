@@ -75,7 +75,7 @@ int main() {
 	// Simplification
 	start = time(NULL);
 	Simplification simpl;
-	Mesh simplified = simpl.apply(&mesh, &structure_graph);
+	Mesh simplified = simpl.apply(&mesh, &structure_graph, filename);
 	// Execution time
 	end = time(NULL);
 	std::cout << "Simplification: " << end - start << " secs" << std::endl;

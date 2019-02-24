@@ -1,6 +1,6 @@
 #pragma once
 
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Simple_cartesian.h>
 #include <CGAL/Surface_mesh.h>
 #include <CGAL/linear_least_squares_fitting_3.h>
 #include <CGAL/squared_distance_3.h>
@@ -21,7 +21,7 @@
 
 
 // GEOMETRY //
-typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
+typedef CGAL::Simple_cartesian<double>                      Kernel;
 
 // 2D //
 typedef Kernel::Point_2                                     Point_2;

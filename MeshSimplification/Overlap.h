@@ -121,6 +121,9 @@ inline std::vector<Point_2> simplify_polygon(Polygon_2* polygon) {
 	points.push_back(polygon->vertex(0)); // Add first polygon vertex
 	// For each edge
 	for (auto e = polygon->edges_begin(); e != polygon->edges_end(); ++e) {
+		// If edge is small, skip it
+		// if (e->squared_length() < 0.01) { continue; }
+
 		// Compute its direction
 		direction = e->to_vector();
 		curr_angle = std::atan(direction.y() / direction.x());
@@ -191,8 +194,8 @@ inline std::vector<Point_3> define_face(const Mesh* mesh, unsigned int id, Plane
 
 	// Merge candidate polygons
 	std::vector<Point_2> points_2d = merge_polygons(polygons, &faces);
-	Polygon_2 face_polygon(points_2d.begin(), points_2d.end());
-	draw_face(&face_polygon, id);
+	// Polygon_2 face_polygon(points_2d.begin(), points_2d.end());
+	// draw_face(&face_polygon, id);
 
 	// Project to 3D
 	std::vector<Point_3> points_3d;
