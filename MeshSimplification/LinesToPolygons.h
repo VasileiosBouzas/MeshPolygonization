@@ -10,27 +10,13 @@ inline std::vector<Segment_2> project_segments(Plane_3* plane, std::vector<Segme
 
 	// Project segment to 2D
 	Point_2 source, target;
-	std::vector<Segment_2> existing_segments;
 	for (auto segment : *segments) {
 		// Project source-target on plane
 		source = plane->to_2d(segment.source());
 		target = plane->to_2d(segment.target());
 
-		// Check for overlapping segments
-		bool exists = false;
-		for (auto existing : existing_segments) {
-			if ((CGAL::squared_distance(existing.source(), source) < 0.01 &&
-				 CGAL::squared_distance(existing.target(), target) < 0.01) ||
-				(CGAL::squared_distance(existing.source(), target) < 0.01 &&
-				 CGAL::squared_distance(existing.target(), source) < 0.01))
-			exists = true;
-		}
-
 		// Add 2D segment
-		if (!exists) {
-			segments_2d.push_back(Segment_2(source, target));
-			existing_segments.push_back(Segment_2(source, target));
-		}
+		segments_2d.push_back(Segment_2(source, target));
 	}
 
 	return segments_2d;

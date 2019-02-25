@@ -49,7 +49,7 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G, std::string filenam
 
 		// Supporting-bbox plane intersections
 		//bbox_lines = compute_bbox_intersections(&bbox, &plane);
-		//lines.insert(lines.end(), bbox_lines.begin(), bbox_lines.end());
+		// lines.insert(lines.end(), bbox_lines.begin(), bbox_lines.end());
 
 		// Clip lines with bbox
 		segments = clip_lines(&lines, &bbox);

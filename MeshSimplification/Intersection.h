@@ -104,8 +104,7 @@ inline std::vector<Segment_3> clip_lines(std::vector<Line_3>* lines, const Bbox_
 			}
 		}
 
-		CGAL_assertion(points.size() == 2);
-		segments.push_back(Segment_3(points[0], points[1]));
+		if (points.size() == 2) { segments.push_back(Segment_3(points[0], points[1])); }
 		points.clear();
 	}
 
