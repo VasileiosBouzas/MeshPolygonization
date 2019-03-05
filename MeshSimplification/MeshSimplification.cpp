@@ -75,7 +75,7 @@ int main() {
 	// Simplification
 	start = time(NULL);
 	Simplification simpl;
-	Mesh simplified = simpl.apply(&mesh, &structure_graph, filename);
+	Mesh simplified = simpl.apply(&mesh, &structure_graph);
 	// Execution time
 	end = time(NULL);
 	std::cout << "Simplification: " << end - start << " secs" << std::endl;
@@ -113,22 +113,8 @@ void writeGraph(const Mesh* mesh, const Graph* G, std::string filename) {
 		// Vertex to segment
 		id = (*G)[*vb].segment;
 
-		// Select segment by id
-		segment = select_segment(mesh, id);
-
-		// Collect segment points
-		for (auto face : segment) {
-			// Collect face vertices
-			vs = vertex_around_face(mesh, face);
-
-			// Collect face points
-			for (auto v : vs) {
-				points.insert(geom[v]);
-			}
-		}
-
-		// Compute centroid
-		centroid = CGAL::centroid(points.begin(), points.end(), CGAL::Dimension_tag<0>());
+		// Retrieve segment centroid
+		centroid = get_segment_centroid(mesh, id);
 
 		// Write vertex
 		fout << "v " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;

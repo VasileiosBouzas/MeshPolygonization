@@ -30,6 +30,7 @@ inline std::vector<Segment_2> split_segments(std::vector<Segment_2>* segments) {
 	// Compute segment intersections
 	std::list<Point_2> segment_points;
 	Point_2 source, target;
+	Segment_2 segment;
 	for (auto segment_1 : *segments) {
 		for (auto segment_2 : *segments) {
 			// Compute intersection
@@ -38,7 +39,7 @@ inline std::vector<Segment_2> split_segments(std::vector<Segment_2>* segments) {
 			// Handle intersection
 			if (intersection != boost::none) {
 				if (const Point_2* point = boost::get<Point_2>(&(*intersection))) {
-						segment_points.push_back(*point);
+					segment_points.push_back(*point);
 				}
 			}
 		}
@@ -52,10 +53,16 @@ inline std::vector<Segment_2> split_segments(std::vector<Segment_2>* segments) {
 
 		// Construct subsegments
 		for (auto point : segment_points) {
-			sub_segments.push_back(Segment_2(source, point));
+			segment = Segment_2(source, point);
+			// Check if degenerate
+			if (!segment.is_degenerate()) { 
+				sub_segments.push_back(segment); 
+			}
 			source = point;
 		}
-		sub_segments.push_back(Segment_2(source, target));
+		// Add final subsegment
+		segment = Segment_2(source, target);
+		if (!segment.is_degenerate()) { sub_segments.push_back(segment); }
 
 		// Clear
 		segment_points.clear();
@@ -105,7 +112,7 @@ inline std::vector<Polygon_2> construct_polygons(std::vector<Segment_2>* segment
 }
 
 
-inline std::vector<Polygon_2> segments_to_polygons(Plane_3* plane, std::vector<Segment_3>* segments, unsigned int id) {
+inline std::vector<Polygon_2> segments_to_polygons(const Mesh* mesh, unsigned int id, Plane_3* plane, std::vector<Segment_3>* segments) {
 	// Project segments on plane
 	std::vector<Segment_2> segments_2d = project_segments(plane, segments);
 

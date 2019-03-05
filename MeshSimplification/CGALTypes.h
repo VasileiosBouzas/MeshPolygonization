@@ -18,6 +18,7 @@
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Polygon_2_algorithms.h>
 #include <CGAL/convex_hull_2.h>
+#include <CGAL/bounding_box.h>
 
 
 // GEOMETRY //

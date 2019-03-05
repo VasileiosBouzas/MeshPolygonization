@@ -4,22 +4,6 @@
 #include "Segment.h"
 
 
-// Compute segment orientation
-inline Vector_3 compute_segment_orientation(const Mesh* mesh, unsigned int id) {
-	// Select segment by id
-	std::set<Face> segment = select_segment(mesh, id);
-
-	Vector_3 avg(0.0, 0.0, 0.0);
-	int n = 0;
-	for (auto face : segment) {
-		avg += CGAL::Polygon_mesh_processing::compute_face_normal(face, *mesh);
-		n++;
-	}
-
-	return avg / n;
-}
-
-
 // Reverse orientation
 inline void reverse_orientation(Mesh* mesh, Halfedge first) {
 	if (first == Halfedge()) return;

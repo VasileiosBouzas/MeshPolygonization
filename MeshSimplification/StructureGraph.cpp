@@ -38,7 +38,7 @@ std::set<unsigned int> StructureGraph::compute_importance(Mesh* mesh, std::size_
 	Filtered_graph segment_graph(*mesh, 0, chart);
 	double area, importance;
 	std::set<Face> segment;
-	for (std::size_t id = 1; id < seg_number + 1; ++id) {
+	for (std::size_t id = 0; id < seg_number; id++) {
 		// Select segment
 		segment_graph.set_selected_faces(id, chart);
 		

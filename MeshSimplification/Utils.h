@@ -173,3 +173,36 @@ inline std::vector<Plane_3> compute_bbox_planes(const Bbox_3* bbox) {
 
 	return planes;
 }
+
+
+// Simplify polygon
+inline std::vector<Point_2> simplify_polygon(Polygon_2* polygon) {
+	std::vector<Point_2> points;
+
+	double threshold = 5 * CGAL_PI / 180;
+
+	// Set initial direction
+	Vector_2 direction = polygon->edges_begin()->to_vector();
+	double angle = std::atan(direction.y() / direction.x()), curr_angle;
+
+	// Check edge direction
+	points.push_back(polygon->vertex(0)); // Add first polygon vertex
+	// For each edge
+	for (auto e = polygon->edges_begin(); e != polygon->edges_end(); ++e) {
+		// If edge is small, skip it
+		//if (e->squared_length() < 0.01) { continue; }
+
+		// Compute its direction
+		direction = e->to_vector();
+		curr_angle = std::atan(direction.y() / direction.x());
+
+		// Compare direction to initial
+		double diff = std::abs(angle - curr_angle);
+		// If within threshold, continue
+		if (diff < threshold) { continue; }
+		// Else, set new direction and add edge source
+		else { angle = curr_angle; points.push_back(e->source()); }
+	}
+
+	return points;
+}

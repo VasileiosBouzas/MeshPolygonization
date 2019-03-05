@@ -106,40 +106,6 @@ inline bool check_overlap(Polygon_2* polygon, std::vector<Polygon_2>* faces) {
 }
 
 
-// Simplify polygon
-inline std::vector<Point_2> simplify_polygon(Polygon_2* polygon) {
-	std::vector<Point_2> points;
-
-	double pi = 4 * std::atan(1);
-	double threshold = 5 * pi / 180;
-
-	// Set initial direction
-	Vector_2 direction = polygon->edges_begin()->to_vector();
-	double angle = std::atan(direction.y() / direction.x()), curr_angle;
-
-	// Check edge direction
-	points.push_back(polygon->vertex(0)); // Add first polygon vertex
-	// For each edge
-	for (auto e = polygon->edges_begin(); e != polygon->edges_end(); ++e) {
-		// If edge is small, skip it
-		// if (e->squared_length() < 0.01) { continue; }
-
-		// Compute its direction
-		direction = e->to_vector();
-		curr_angle = std::atan(direction.y() / direction.x());
-
-		// Compare direction to initial
-		double diff = std::abs(angle - curr_angle);
-		// If within threshold, continue
-		if (diff < threshold) { continue; }
-		// Else, set new direction and add edge source
-		else { angle = curr_angle; points.push_back(e->source()); }
-	}
-
-	return points;
-}
-
-
 // Merge candidate polygons
 inline std::vector<Point_2> merge_polygons(std::vector<Polygon_2>* polygons, std::vector<Polygon_2>* faces) {
 	// Check overlapping
@@ -194,8 +160,8 @@ inline std::vector<Point_3> define_face(const Mesh* mesh, unsigned int id, Plane
 
 	// Merge candidate polygons
 	std::vector<Point_2> points_2d = merge_polygons(polygons, &faces);
-	// Polygon_2 face_polygon(points_2d.begin(), points_2d.end());
-	// draw_face(&face_polygon, id);
+	//Polygon_2 face_polygon(points_2d.begin(), points_2d.end());
+	//draw_face(&face_polygon, id);
 
 	// Project to 3D
 	std::vector<Point_3> points_3d;

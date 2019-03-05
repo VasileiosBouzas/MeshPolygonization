@@ -16,7 +16,7 @@ Simplification::~Simplification()
 }
 
 
-Mesh Simplification::apply(const Mesh* mesh, const Graph* G, std::string filename) {
+Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 	// Plane map
 	std::map<unsigned int, Plane_3> plane_map = compute_planes(mesh, G);
 
@@ -49,13 +49,13 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G, std::string filenam
 
 		// Supporting-bbox plane intersections
 		//bbox_lines = compute_bbox_intersections(&bbox, &plane);
-		// lines.insert(lines.end(), bbox_lines.begin(), bbox_lines.end());
+		//lines.insert(lines.end(), bbox_lines.begin(), bbox_lines.end());
 
 		// Clip lines with bbox
 		segments = clip_lines(&lines, &bbox);
 
 		// Segments to 2D polygons
-		polygons = segments_to_polygons(&plane, &segments, id);
+		polygons = segments_to_polygons(mesh, id, &plane, &segments);
 
 		// Define simplified face
 		points = define_face(mesh, id, &plane, &polygons);
@@ -122,7 +122,7 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G, std::string filenam
 		Vector_3 seg_normal = compute_segment_orientation(mesh, face_to_segment[i]);
 
 		// Check face orientation
-		if (CGAL::angle(normal, seg_normal) == CGAL::OBTUSE) {
+		if (normal * seg_normal < 0) {
 			// If needed, reverse
 			std::reverse(face.begin(), face.end());
 		}

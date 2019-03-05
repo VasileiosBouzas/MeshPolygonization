@@ -1,4 +1,5 @@
 #include "PlanarSegmentation.h"
+#include "Segment.h"
 
 
 PlanarSegmentation::PlanarSegmentation()
@@ -24,8 +25,11 @@ std::size_t PlanarSegmentation::apply(Mesh* mesh, double dist_thres, unsigned in
 
 	double dist = std::pow(dist_thres, 2);
 	Point_3 current_color = random_color();
-	int current_index = 1;
+	int current_index = 0;
 	std::size_t seg_number = 0;
+	std::map<int, Plane_3> plane_map;
+	std::map<int, std::set<Face>> segment_map;
+
 	while (faces.size() != 0) {
 		// Locate vertex with highest planarity
 		Face max_face = get_max_planarity_face(mesh, &faces);
@@ -89,12 +93,19 @@ std::size_t PlanarSegmentation::apply(Mesh* mesh, double dist_thres, unsigned in
 			}
 		}*/
 
+		// Store
+		plane_map[current_index] = plane;
+		segment_map[current_index] = current_region;
+
 		// Initialize search for next region
 		current_region.clear();
 		current_index += 1;
 		seg_number += 1;
 		current_color = random_color();
 	}
+
+	// Refine segmentation
+    seg_number = refine_segmentation(mesh, seg_number, &plane_map, &segment_map, dist);
 
 	return seg_number;
 }
@@ -132,4 +143,133 @@ Point_3 PlanarSegmentation::random_color() {
 	while (G < 100) { G = rand() % 256; }
 	while (B < 100) { B = rand() % 256; }
 	return Point_3(R, G, B);
+}
+
+
+// Check segment fitting
+bool PlanarSegmentation::check_fitting(Mesh* mesh, std::set<Face>* segment, Plane_3* plane, double dist) {
+	// Iterate segment faces
+	int n = 0;
+	for (auto face : *segment) {
+		if (check_distance(mesh, face, *plane, dist)) n++;
+	}
+
+	// Good fitting >= 20%
+	double fitting = n / double(segment->size());
+	if (fitting >= 0.2) {return true;}
+	return false;
+}
+
+
+// Merge segments
+int PlanarSegmentation::merge_segments(Mesh* mesh, std::size_t seg_number, std::set<Face>* seg_1, std::set<Face>* seg_2) {
+	// Retrieve all face properties
+	FProp_int chart = mesh->property_map<Face, int>("f:chart").first;
+	FProp_color color = mesh->property_map<Face, Point_3>("f:color").first;
+
+	// Introduce new segment
+	int new_id = int(seg_number);
+	Point_3 new_color = random_color();
+
+	// Change first segment
+	for (auto face : *seg_1) {
+		// Change chart
+		chart[face] = new_id;
+
+		// Change color
+		color[face] = new_color;
+	}
+
+	// Change second segment
+	for (auto face : *seg_2) {
+		chart[face] = new_id;
+		color[face] = new_color;
+	}
+
+	return new_id;
+}
+
+
+// Refine segmentation
+std::size_t PlanarSegmentation::refine_segmentation(Mesh* mesh, std::size_t seg_number, std::map<int, Plane_3>* plane_map, std::map<int, std::set<Face>>* segment_map, double dist) {
+	// Define plane angle threshold
+	double theta = 10.0 * CGAL_PI / 180.0;
+
+	// Collect segment indices
+	std::vector<int> segments;
+	for (auto id = 0; id < seg_number; id++) {
+		segments.push_back(id);
+	}
+
+	// Iterate segments
+	int id_1, id_2;
+	std::set<Face> seg_1, seg_2;
+	Plane_3 plane_1, plane_2;
+	Vector_3 n1, n2;
+
+	bool merged = false;
+	do {
+		merged = false;
+
+		// Sort segments in ascending order of faces
+		std::sort(segments.begin(), segments.end(),
+			[&](const int& id_1, const int& id_2)
+		{return (*segment_map)[id_1] < (*segment_map)[id_2]; });
+
+		// Iterate segments
+		for (auto i = 0; i < segments.size(); i++) {
+			// Retrieve segment
+			id_1 = segments[i];
+			seg_1 = (*segment_map)[id_1];
+			plane_1 = (*plane_map)[id_1];
+			n1 = plane_1.orthogonal_vector();
+			n1 = n1 / std::sqrt(n1.squared_length()); // Normalize
+
+			// Check all other segments
+			for (auto j = i + 1; j < segments.size(); j++) {
+				// Retrieve segment
+				id_2 = segments[j];
+				seg_2 = (*segment_map)[id_2];
+				plane_2 = (*plane_map)[id_2];
+				n2 = plane_2.orthogonal_vector();
+				n2 = n2 / std::sqrt(n2.squared_length()); // Normalize
+
+				// Check plane angle
+				if (std::abs(n1*n2) > std::cos(theta)) {
+					// Check fitting
+					if (check_fitting(mesh, &seg_1, &plane_2, dist) ||
+						check_fitting(mesh, &seg_2, &plane_1, dist)) {
+						// Merge
+						int new_id = merge_segments(mesh, seg_number, &seg_1, &seg_2);
+
+						// Update
+						segments.push_back(new_id);
+						(*segment_map)[new_id].insert(seg_1.begin(), seg_1.end());
+						(*segment_map)[new_id].insert(seg_2.begin(), seg_2.end());
+						(*plane_map)[new_id] = plane_1;
+
+						// Delete
+						auto pos_1 = std::find(segments.begin(), segments.end(), id_1);
+						segments.erase(pos_1);
+						segment_map->erase(id_1);
+						plane_map->erase(id_1);
+
+						auto pos_2 = std::find(segments.begin(), segments.end(), id_2);
+						segments.erase(pos_2);
+						segment_map->erase(id_2);
+						plane_map->erase(id_2);
+
+						// Increase segment number
+						seg_number += 1;
+
+						// Stop search
+						merged = true; break;
+					}
+				}
+			}
+			if (merged) break;
+		}
+	} while (merged);
+
+	return seg_number;
 }
