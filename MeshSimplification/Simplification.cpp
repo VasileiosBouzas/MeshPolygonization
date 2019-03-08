@@ -1,9 +1,6 @@
 #include "Simplification.h"
 #include "Segment.h"
 #include "Intersection.h"
-#include "LinesToPolygons.h"
-#include "Overlap.h"
-#include "Orientation.h"
 #include "Draw.h"
 
 Simplification::Simplification()
@@ -17,125 +14,144 @@ Simplification::~Simplification()
 
 
 Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
-	// Plane map
-	std::map<unsigned int, Plane_3> plane_map = compute_planes(mesh, G);
-
 	// Compute bbox of original mesh
 	Bbox_3 bbox = CGAL::Polygon_mesh_processing::bbox(*mesh);
 
-	// Define simplified mesh
-	std::vector<Point_3> existing;
-	std::vector<std::size_t> face;
-	std::vector<std::vector<std::size_t>> faces;
-	std::map<std::size_t, unsigned int> face_to_segment;
+	// Supporting plane map
+	std::map<unsigned int, Plane_3> plane_map = compute_supporting_planes(mesh, G);
 
+	// Compute mesh vertices
+	std::vector<Triple_intersection> vertices = compute_mesh_vertices(&bbox, G, &plane_map);
+
+	// Compute plane intersections
+	std::vector<Plane_intersection> segments = compute_mesh_edges(&bbox, G, &plane_map, &vertices);
+
+	draw_frame(&vertices, &segments);
+
+	// Define simplified mesh
+	Mesh simplified_mesh;
+	return simplified_mesh;
+}
+
+
+// Compute mesh vertices
+std::vector<Triple_intersection> Simplification::compute_mesh_vertices(const Bbox_3* bbox, const Graph* G, std::map<unsigned int, Plane_3>* plane_map) {
 	// Traverse structure graph
 	unsigned int id;
 	Plane_3 plane;
-	std::vector<Line_3> lines, bbox_lines;
-	std::vector<Segment_3> segments;
-	std::vector<Polygon_2> polygons;
-	std::vector<Point_3> points;
+	std::vector<Triple_intersection> new_points, points;
 
 	// For each segment
 	Graph_vertex_iterator vb, ve;
 	for (boost::tie(vb, ve) = vertices(*G); vb != ve; ++vb) {
 		// Vertex to segment
 		id = (*G)[*vb].segment;
-		plane = plane_map[id];
+		plane = (*plane_map)[id];
 
-		// Supporting-adjacent plane intersections
-		lines = compute_intersections(G, *vb, &plane_map);
-
-		// Supporting-bbox plane intersections
-		//bbox_lines = compute_bbox_intersections(&bbox, &plane);
-		//lines.insert(lines.end(), bbox_lines.begin(), bbox_lines.end());
-
-		// Clip lines with bbox
-		segments = clip_lines(&lines, &bbox);
-
-		// Segments to 2D polygons
-		polygons = segments_to_polygons(mesh, id, &plane, &segments);
-
-		// Define simplified face
-		points = define_face(mesh, id, &plane, &polygons);
-
-		// At least 3 points to define a face
-		if (points.size() >= 3) {
-			for (auto point : points) {
-				// Check if point already exists
+		// Compute triple plane intersections
+		new_points = compute_triple_intersections(G, *vb, plane_map);
+		for (auto point : new_points) {
+			// If inside bbox
+			if (is_in_bbox(bbox, &point.point)) {
 				bool found = false;
-				for (std::size_t i = 0; i < existing.size(); i++) {
-					// Check in vicinity
-					if (point == existing[i]) {
-						//If exists
-						face.push_back(i);
+
+				// Check if exists
+				for (auto existing : points) {
+					// Triple intersection equality ==
+					// Supporting planes are equal
+					if (point.planes == existing.planes) {
 						found = true; break;
 					}
 				}
 
-				// If not
-				if (!found) {
-					// Add to existing
-					existing.push_back(point);
+				// If not, add
+				if (!found) { points.push_back(point); }
+			}
+		}
+	}
 
-					// Add to face the last existing point
-					face.push_back(existing.size() - 1);
+	return points;
+}
+
+
+// Compute mesh edges
+std::vector<Plane_intersection> Simplification::compute_mesh_edges(const Bbox_3* bbox, const Graph* G, std::map<unsigned int, Plane_3>* plane_map, std::vector<Triple_intersection>* points) {
+	// Traverse structure graph
+	unsigned int id;
+	Plane_3 plane;
+	std::vector<Plane_intersection> new_segments, segments;
+
+	// For each segment
+	Graph_vertex_iterator vb, ve;
+	for (boost::tie(vb, ve) = vertices(*G); vb != ve; ++vb) {
+		// Vertex to segment
+		id = (*G)[*vb].segment;
+		plane = (*plane_map)[id];
+
+		// Compute triple plane intersections
+		new_segments = compute_intersections(bbox, G, *vb, plane_map);
+		for (auto segment : new_segments) {
+			bool found = false;
+
+			// Check if exists
+			for (auto existing : segments) {
+				// Plane intersection equality ==
+				// Supporting planes are equal
+				if (segment.planes == existing.planes) {
+					found = true; break;
 				}
 			}
 
-			// Add to faces
-			faces.push_back(face);
-			face_to_segment[faces.size() - 1] = id;
-			face.clear();
+			// If not, add
+			if (!found) { segments.push_back(segment); }
 		}
 	}
 
-	// Draw mesh skeleton
-	// draw_skeleton(&existing, &faces, filename);
-
-	// Define simplified mesh
-	Mesh simplified_mesh;
-
-	// Define vertices
-	Vertex vertex;
-	std::map<std::size_t, Vertex> point_to_vertex;
-	for (std::size_t i = 0; i < existing.size(); i++) {
-		vertex = simplified_mesh.add_vertex(existing[i]);
-		point_to_vertex[i] = vertex;
+	std::cout << segments.size() << std::endl;
+	for (auto segment : segments) {
+		for (auto plane : segment.planes) {
+			std::cout << plane << ", ";
+		}
+		std::cout << std::endl;
 	}
 
-	// Define faces
-	std::vector<Vertex> vertices;
-	for (std::size_t i = 0; i < faces.size(); i++) {
-		face = faces[i];
+	std::vector<Plane_intersection> finales;
+	for (auto segment : segments) {
+		auto segment_planes = segment.planes;
+		std::vector<Point_3> splitters;
+		for (auto point : *points) {
+			auto point_planes = point.planes;
 
-		// Recover face triangle
-		Point_3 p = existing[face[0]];
-		Point_3 q = existing[face[1]];
-		Point_3 r = existing[face[2]];
+			std::vector<int> common_planes;
+			for (auto plane : point_planes) {
+				auto pos = std::find(segment_planes.begin(), segment_planes.end(), plane);
+				if (pos != segment_planes.end()) { common_planes.push_back(plane); }
+			}
 
-		// Compute triangle normal
-		Vector_3 normal = CGAL::normal(p, q, r);
-
-		// Compute segment normal
-		Vector_3 seg_normal = compute_segment_orientation(mesh, face_to_segment[i]);
-
-		// Check face orientation
-		if (normal * seg_normal < 0) {
-			// If needed, reverse
-			std::reverse(face.begin(), face.end());
+			if (common_planes.size() == 2) { splitters.push_back(point.point); }
 		}
 
-		// Collect vertices
-		for (auto idx : face) {
-			vertices.push_back(point_to_vertex[idx]);
-		}
+		Point_3 source = segment.segment.source();
+		Point_3 target = segment.segment.source();
 
-		// Define face
-		simplified_mesh.add_face(vertices);
-		vertices.clear();
+		std::sort(splitters.begin(), splitters.end(), [&](const Point_3 &pt1, const Point_3 &pt2) {
+			return CGAL::squared_distance(source, pt1) < CGAL::squared_distance(source, pt2);
+		});
+
+		for (auto i = 0; i < splitters.size(); i++) {
+			for (auto j = i + 1; j < splitters.size(); j++) {
+				Plane_intersection finale;
+
+				source = splitters[i];
+				target = splitters[j];
+				finale.segment = Segment_3(splitters[i], splitters[j]);
+
+				finale.planes.insert(segment_planes.begin(), segment_planes.end());
+
+				finales.push_back(finale);
+			}
+		}
 	}
-
-	return simplified_mesh;
+	std::cout << finales.size() << std::endl;
+	return finales;
 }

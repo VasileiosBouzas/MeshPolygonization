@@ -143,29 +143,34 @@ inline void draw_face(Polygon_2* polygon, unsigned int id) {
 }
 
 
-// Draw mesh skeleton
-inline void draw_skeleton(std::vector<Point_3>* points, std::vector<std::vector<size_t>>* faces, std::string filename) {
+// Draw mesh frame
+inline void draw_frame(std::vector<Triple_intersection>* vertices, std::vector<Plane_intersection>* edges) {
 	// Open file
 	std::ostringstream oss;
-	oss << "draw/skeletons/" << filename << ".obj";
+	oss << "draw/frames/frame.obj";
 	std::ofstream os(oss.str().data());
 
-	// Store skeleton vertices
+	// Store points
+	Point_3 point;
 	std::map<Point_3, int> vertex_map;
-	int num = 1;
-	for (auto point : *points) {
-		vertex_map[point] = num;
-		num++;
+	int n = 1;
+	for (auto vertex : *vertices) {
+		point = vertex.point;
+		vertex_map[point] = n;
+		n++;
 		os << "v " << point.x() << " " << point.y() << " " << point.z() << std::endl;
 	}
 
-	// Store skeleton faces
-	for (auto face : *faces) {
-		for (std::size_t i = 0, ii = 1; i < face.size(); ++i, ++ii, ii %= face.size()) {
-			os << "l " << vertex_map[(*points)[face[i]]] << " " << vertex_map[(*points)[face[ii]]] << std::endl;
-		}
+	// Store edges
+	Segment_3 segment;
+	Point_3 source, target;
+	for (auto edge : *edges) {
+		segment = edge.segment;
+		source = segment.source();
+		target = segment.target();
+		os << "l " << vertex_map[source] << " " << vertex_map[target] << std::endl;
 	}
-
 	// Close file
 	os.close();
 }
+

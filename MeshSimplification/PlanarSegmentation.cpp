@@ -66,7 +66,7 @@ std::size_t PlanarSegmentation::apply(Mesh* mesh, double dist_thres, unsigned in
 				if (is_visited) continue;
 
 				// Check distance
-				bool is_fitting = check_distance(mesh, neighbor, plane, dist);
+				bool is_fitting = check_distance(mesh, &neighbor, &plane, dist);
 				if (is_fitting) {
 					// Add face to current region
 					current_region.insert(neighbor);
@@ -123,13 +123,13 @@ Face PlanarSegmentation::get_max_planarity_face(const Mesh* mesh, std::set<Face>
 
 
 // Check distance
-bool PlanarSegmentation::check_distance(const Mesh* mesh, Face face, Plane_3 plane, double dist) {
+bool PlanarSegmentation::check_distance(const Mesh* mesh, Face* face, Plane_3* plane, double dist) {
 	// Collect vertices for face
-	std::vector<Vertex> vertices = vertex_around_face(mesh, face);
+	std::vector<Vertex> vertices = vertex_around_face(mesh, *face);
 
 	VProp_geom geom = mesh->points();
 	for (auto vertex : vertices) {
-		if (squared_distance(geom[vertex], plane) > dist) { return false; }
+		if (squared_distance(geom[vertex], *plane) > dist) { return false; }
 	}
 
 	return true;
@@ -151,7 +151,7 @@ bool PlanarSegmentation::check_fitting(Mesh* mesh, std::set<Face>* segment, Plan
 	// Iterate segment faces
 	int n = 0;
 	for (auto face : *segment) {
-		if (check_distance(mesh, face, *plane, dist)) n++;
+		if (check_distance(mesh, &face, plane, dist)) n++;
 	}
 
 	// Good fitting >= 20%
@@ -246,7 +246,7 @@ std::size_t PlanarSegmentation::refine_segmentation(Mesh* mesh, std::size_t seg_
 						segments.push_back(new_id);
 						(*segment_map)[new_id].insert(seg_1.begin(), seg_1.end());
 						(*segment_map)[new_id].insert(seg_2.begin(), seg_2.end());
-						(*plane_map)[new_id] = plane_1;
+						(*plane_map)[new_id] = fit_plane_to_faces(mesh, &(*segment_map)[new_id]);
 
 						// Delete
 						auto pos_1 = std::find(segments.begin(), segments.end(), id_1);

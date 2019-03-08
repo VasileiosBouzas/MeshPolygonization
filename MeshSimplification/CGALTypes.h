@@ -91,3 +91,26 @@ typedef Traits_2::X_monotone_curve_2		   X_monotone_curve_2;
 typedef Arrangement_2::Face_iterator           Face_iterator;
 typedef Arrangement_2::Ccb_halfedge_circulator Ccb_halfedge_circulator;
 // 2D ARRANGEMENT //
+
+
+// TRIPLE INTERSECTION //
+// Intersection of plane triplet
+struct Triple_intersection {
+	// Geometry
+	Point_3 point;
+
+	// Supporting planes
+	std::set<int> planes;
+};
+// TRIPLE INTERSECTION //
+
+
+// PLANE INTERSECTION //
+// Intersecting line of two planes
+struct Plane_intersection {
+	// Geometry
+	Segment_3 segment;
+
+	// Supporting planes
+	std::set<int> planes;
+};
