@@ -24,9 +24,12 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 	std::vector<Triple_intersection> vertices = compute_mesh_vertices(&bbox, G, &plane_map);
 
 	// Compute plane intersections
-	std::vector<Plane_intersection> segments = compute_mesh_edges(&bbox, G, &plane_map, &vertices);
+	std::vector<Plane_intersection> edges = compute_mesh_edges(&bbox, G, &plane_map);
 
-	draw_frame(&vertices, &segments);
+	// Split edges
+	edges = split_edges(&edges, &vertices);
+
+	draw_frame(&vertices, &edges);
 
 	// Define simplified mesh
 	Mesh simplified_mesh;
@@ -59,6 +62,7 @@ std::vector<Triple_intersection> Simplification::compute_mesh_vertices(const Bbo
 				for (auto existing : points) {
 					// Triple intersection equality ==
 					// Supporting planes are equal
+					// For each triple of planes, only one vertex should exist!
 					if (point.planes == existing.planes) {
 						found = true; break;
 					}
@@ -75,7 +79,7 @@ std::vector<Triple_intersection> Simplification::compute_mesh_vertices(const Bbo
 
 
 // Compute mesh edges
-std::vector<Plane_intersection> Simplification::compute_mesh_edges(const Bbox_3* bbox, const Graph* G, std::map<unsigned int, Plane_3>* plane_map, std::vector<Triple_intersection>* points) {
+std::vector<Plane_intersection> Simplification::compute_mesh_edges(const Bbox_3* bbox, const Graph* G, std::map<unsigned int, Plane_3>* plane_map) {
 	// Traverse structure graph
 	unsigned int id;
 	Plane_3 plane;
@@ -97,6 +101,7 @@ std::vector<Plane_intersection> Simplification::compute_mesh_edges(const Bbox_3*
 			for (auto existing : segments) {
 				// Plane intersection equality ==
 				// Supporting planes are equal
+				// For each plane pair, only one intersection should exist!
 				if (segment.planes == existing.planes) {
 					found = true; break;
 				}
@@ -107,51 +112,65 @@ std::vector<Plane_intersection> Simplification::compute_mesh_edges(const Bbox_3*
 		}
 	}
 
-	std::cout << segments.size() << std::endl;
-	for (auto segment : segments) {
-		for (auto plane : segment.planes) {
-			std::cout << plane << ", ";
-		}
-		std::cout << std::endl;
-	}
+	return segments;
+}
 
-	std::vector<Plane_intersection> finales;
-	for (auto segment : segments) {
+
+// Split mesh edges with mesh vertices
+std::vector<Plane_intersection> Simplification::split_edges(std::vector<Plane_intersection>* segments, std::vector<Triple_intersection>* points) {
+	std::vector<Plane_intersection> edges;
+
+	// For each segment
+	for (auto segment : *segments) {
+		// Retrieve supporting planes
 		auto segment_planes = segment.planes;
+
+		// Find vertices to split edge
 		std::vector<Point_3> splitters;
+		// For each vertex
 		for (auto point : *points) {
+			// Retrieve supporting planes
 			auto point_planes = point.planes;
 
+			// Find common supporting planes with edge
 			std::vector<int> common_planes;
 			for (auto plane : point_planes) {
 				auto pos = std::find(segment_planes.begin(), segment_planes.end(), plane);
 				if (pos != segment_planes.end()) { common_planes.push_back(plane); }
 			}
 
+			// Two common planes ==
+			// Vertex lies on edge => split edge!
 			if (common_planes.size() == 2) { splitters.push_back(point.point); }
 		}
 
+		// Retrieve edge endpoints
 		Point_3 source = segment.segment.source();
 		Point_3 target = segment.segment.source();
 
+		// Sort split points by distance to source
 		std::sort(splitters.begin(), splitters.end(), [&](const Point_3 &pt1, const Point_3 &pt2) {
-			return CGAL::squared_distance(source, pt1) < CGAL::squared_distance(source, pt2);
-		});
+				  return CGAL::squared_distance(source, pt1) < CGAL::squared_distance(source, pt2);});
 
+		// Split edge into edges
 		for (auto i = 0; i < splitters.size(); i++) {
 			for (auto j = i + 1; j < splitters.size(); j++) {
-				Plane_intersection finale;
+				// Define plane intersection
+				Plane_intersection edge;
 
+				// Add geometry
 				source = splitters[i];
 				target = splitters[j];
-				finale.segment = Segment_3(splitters[i], splitters[j]);
+				edge.segment = Segment_3(splitters[i], splitters[j]);
 
-				finale.planes.insert(segment_planes.begin(), segment_planes.end());
+				// Add supporting plane ==
+				// The same as of the original segment!
+				edge.planes.insert(segment_planes.begin(), segment_planes.end());
 
-				finales.push_back(finale);
+				edges.push_back(edge);
 			}
 		}
 	}
-	std::cout << finales.size() << std::endl;
-	return finales;
+
+	return edges;
 }

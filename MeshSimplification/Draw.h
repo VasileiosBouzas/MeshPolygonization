@@ -170,6 +170,7 @@ inline void draw_frame(std::vector<Triple_intersection>* vertices, std::vector<P
 		target = segment.target();
 		os << "l " << vertex_map[source] << " " << vertex_map[target] << std::endl;
 	}
+
 	// Close file
 	os.close();
 }
