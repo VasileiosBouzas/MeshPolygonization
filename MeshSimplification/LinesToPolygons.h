@@ -5,69 +5,82 @@
 
 
 // Convert 3D segments to 2D segments
-inline std::vector<Segment_2> project_segments(Plane_3* plane, std::vector<Segment_3>* segments) {
-	std::vector<Segment_2> segments_2d;
+inline std::vector<Segment_2> project_segments(Plane_3* plane, std::vector<Plane_intersection>* edges, std::vector<int>* plane_edges) {
+	std::vector<Segment_2> segments;
 
 	// Project segment to 2D
+	Segment_3 segment;
 	Point_2 source, target;
-	for (auto segment : *segments) {
+	for (auto i : *plane_edges) {
+		// Retrieve geometry
+		segment = (*edges)[i].segment;
+
 		// Project source-target on plane
 		source = plane->to_2d(segment.source());
 		target = plane->to_2d(segment.target());
 
 		// Add 2D segment
-		segments_2d.push_back(Segment_2(source, target));
+		segments.push_back(Segment_2(source, target));
 	}
 
-	return segments_2d;
+	return segments;
 }
 
+
 // Construct simple polygons
-inline std::vector<Polygon_2> construct_polygons(std::vector<Segment_2>* segments) {
-	std::vector<Polygon_2> polygons;
+inline std::vector<Candidate_face> construct_candidate_faces(std::vector<Segment_2>* segments, std::vector<int>* plane_edges) {
+	std::vector<Candidate_face> candidate_faces;
 
 	// Construct 2D arrangement
 	Arrangement_2 arr;
 	CGAL::insert_non_intersecting_curves(arr, segments->begin(), segments->end());
 
 	// Iterate arrangement faces
-	X_monotone_curve_2 cv;
-	std::vector<Point_2> points;
-	std::vector<Polygon_2> polygon;
 	for (Face_iterator f = arr.faces_begin(); f != arr.faces_end(); ++f) {
 		// Check if face is unbounded
 		if (f->is_unbounded()) { continue; }
 
+		// Define candidate face
+		Candidate_face candidate_face;
+
 		// Traverse outer boundary of face
 		Ccb_halfedge_circulator cc = f->outer_ccb();
 		do {
-			// Retrieve original curve
-			cv = cc->curve();
+			// Retrieve curve
+			Point_2 source = cc->curve().source();
+			Point_2 target = cc->curve().target();
+			Segment_2 curve(source, target);
 
-			// Check curve orientation to original segment
-			bool curve_has_same_direction = (cc->curve().source() == cc->source()->point());
+			// Find original segment
+			int pos;
+			for (auto i = 0; i < segments->size(); i++) {
+				Segment_2 segment = (*segments)[i];
+				if (curve == segment || curve == segment.opposite()) {
+					pos = i; break;
+				}
+			}
 
-			// If same orientation
-			if (curve_has_same_direction) { points.push_back(cv.source()); }
-			else { points.push_back(cv.target()); }
+			// Retrieve edge
+			auto edge = (*plane_edges)[pos];
+			// Add to face
+			candidate_face.edges.push_back(edge);
+
 		} while (++cc != f->outer_ccb());
 
-		// Construct polygon
-		Polygon_2 polygon(points.begin(), points.end());
-		polygons.push_back(polygon);
-		points.clear();
+		// Update
+		candidate_faces.push_back(candidate_face);
 	}
 
-	return polygons;
+	return candidate_faces;
 }
 
 
-inline std::vector<Polygon_2> segments_to_polygons(Plane_3* plane, std::vector<Segment_3>* segments) {
+inline std::vector<Candidate_face> segments_to_polygons(Plane_3* plane, std::vector<Plane_intersection>* edges, std::vector<int>* plane_edges) {
 	// Project segments on plane
-	std::vector<Segment_2> segments_2d = project_segments(plane, segments);
+	std::vector<Segment_2> segments = project_segments(plane, edges, plane_edges);
 
 	// Construct simple polygons
-	std::vector<Polygon_2> polygons = construct_polygons(&segments_2d);
+	std::vector<Candidate_face> candidate_faces = construct_candidate_faces(&segments, plane_edges);
 
-	return polygons;
+	return candidate_faces;
 }

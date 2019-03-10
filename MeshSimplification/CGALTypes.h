@@ -111,6 +111,18 @@ struct Plane_intersection {
 	// Geometry
 	Segment_3 segment;
 
+	// Faces
+	std::vector<int> faces;
+
 	// Supporting planes
 	std::set<int> planes;
 };
+// PLANE INTERSECTION //
+
+
+// CANDIDATE FACE //
+struct Candidate_face {
+	// Edges
+	std::vector<int> edges;
+};
+// CANDIDATE FACE //

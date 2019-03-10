@@ -22,37 +22,15 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 	std::map<unsigned int, Plane_3> plane_map = compute_supporting_planes(mesh, G);
 
 	// Compute mesh vertices
-	std::vector<Triple_intersection> mesh_vertices = compute_mesh_vertices(&bbox, G, &plane_map);
+	std::vector<Triple_intersection> vertices = compute_mesh_vertices(&bbox, G, &plane_map);
 
 	// Compute plane intersections
 	std::vector<Plane_intersection> edges = compute_mesh_edges(&bbox, G, &plane_map);
 	// Split edges
-	edges = split_edges(&edges, &mesh_vertices);
+	edges = split_edges(&edges, &vertices);
 
-	draw_frame(&mesh_vertices, &edges);
-
-	unsigned int id;
-	Plane_3 plane;
-	Graph_vertex_iterator vb, ve;
-	int n = 0;
-	for (boost::tie(vb, ve) = vertices(*G); vb != ve; ++vb) {
-		// Vertex to segment
-		id = (*G)[*vb].segment;
-		plane = plane_map[id];
-
-		std::vector<Segment_3> segments;
-		for (auto edge : edges) {
-			auto planes = edge.planes;
-			if (planes.find(id) != planes.end()) { segments.push_back(edge.segment); }
-		}
-
-		std::vector<Polygon_2> polygons = segments_to_polygons(&plane, &segments);
-		n += int(polygons.size());
-	}
-
-	std::cout << "VERTICES: " << mesh_vertices.size() << std::endl;
-	std::cout << "EDGES: " << edges.size() << std::endl;
-	std::cout << "FACES: " << n << std::endl;
+	// Compute mesh faces
+	std::vector<Candidate_face> faces = compute_mesh_faces(G, &plane_map, &edges);
 
 	// Define simplified mesh
 	Mesh simplified_mesh;
@@ -199,4 +177,53 @@ std::vector<Plane_intersection> Simplification::split_edges(std::vector<Plane_in
 	}
 
 	return edges;
+}
+
+
+// Compute mesh faces
+std::vector<Candidate_face> Simplification::compute_mesh_faces(const Graph* G, std::map<unsigned int, Plane_3>* plane_map, std::vector<Plane_intersection>* edges) {
+	std::vector<Candidate_face> candidate_faces;
+
+	// Iterate segments
+	unsigned int id;
+	Plane_3 plane;
+	Graph_vertex_iterator vb, ve;
+	for (boost::tie(vb, ve) = vertices(*G); vb != ve; ++vb) {
+		// Vertex to segment
+		id = (*G)[*vb].segment;
+		plane = (*plane_map)[id];
+
+		// Retrieve segment edges
+		std::vector<int> plane_edges;
+		for (auto i = 0; i < edges->size(); i++) {
+			// Retrieve edge planes
+			auto planes = (*edges)[i].planes;
+			
+			// Check for segment plane
+			if (planes.find(id) != planes.end()) { 
+				plane_edges.push_back(i);
+			}
+		}
+
+		// Construct candidate faces of segment
+		std::vector<Candidate_face> faces = segments_to_polygons(&plane, edges, &plane_edges);
+
+		// Update
+		candidate_faces.insert(candidate_faces.end(), faces.begin(), faces.end());
+	}
+
+	// Update edges
+	for (auto i = 0; i < edges->size(); i++) {
+		// Check all faces
+		for (auto j = 0; j < candidate_faces.size(); j++) {
+			// Retrieve face edges
+			auto e = candidate_faces[j].edges;
+
+			// If edge found, update
+			auto pos = std::find(e.begin(), e.end(), i);
+			if (pos != e.end()) { (*edges)[i].faces.push_back(j); }
+		}
+	}
+
+	return candidate_faces;
 }
