@@ -175,6 +175,7 @@
     <ClInclude Include="CGALTypes.h" />
     <ClInclude Include="Draw.h" />
     <ClInclude Include="Intersection.h" />
+    <ClInclude Include="LinesToPolygons.h" />
     <ClInclude Include="Planarity.h" />
     <ClInclude Include="PlanarSegmentation.h" />
     <ClInclude Include="Segment.h" />

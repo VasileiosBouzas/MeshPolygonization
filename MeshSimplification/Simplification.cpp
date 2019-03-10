@@ -1,6 +1,7 @@
 #include "Simplification.h"
 #include "Segment.h"
 #include "Intersection.h"
+#include "LinesToPolygons.h"
 #include "Draw.h"
 
 Simplification::Simplification()
@@ -21,15 +22,37 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 	std::map<unsigned int, Plane_3> plane_map = compute_supporting_planes(mesh, G);
 
 	// Compute mesh vertices
-	std::vector<Triple_intersection> vertices = compute_mesh_vertices(&bbox, G, &plane_map);
+	std::vector<Triple_intersection> mesh_vertices = compute_mesh_vertices(&bbox, G, &plane_map);
 
 	// Compute plane intersections
 	std::vector<Plane_intersection> edges = compute_mesh_edges(&bbox, G, &plane_map);
-
 	// Split edges
-	edges = split_edges(&edges, &vertices);
+	edges = split_edges(&edges, &mesh_vertices);
 
-	draw_frame(&vertices, &edges);
+	draw_frame(&mesh_vertices, &edges);
+
+	unsigned int id;
+	Plane_3 plane;
+	Graph_vertex_iterator vb, ve;
+	int n = 0;
+	for (boost::tie(vb, ve) = vertices(*G); vb != ve; ++vb) {
+		// Vertex to segment
+		id = (*G)[*vb].segment;
+		plane = plane_map[id];
+
+		std::vector<Segment_3> segments;
+		for (auto edge : edges) {
+			auto planes = edge.planes;
+			if (planes.find(id) != planes.end()) { segments.push_back(edge.segment); }
+		}
+
+		std::vector<Polygon_2> polygons = segments_to_polygons(&plane, &segments);
+		n += int(polygons.size());
+	}
+
+	std::cout << "VERTICES: " << mesh_vertices.size() << std::endl;
+	std::cout << "EDGES: " << edges.size() << std::endl;
+	std::cout << "FACES: " << n << std::endl;
 
 	// Define simplified mesh
 	Mesh simplified_mesh;
@@ -149,26 +172,29 @@ std::vector<Plane_intersection> Simplification::split_edges(std::vector<Plane_in
 		Point_3 target = segment.segment.source();
 
 		// Sort split points by distance to source
-		std::sort(splitters.begin(), splitters.end(), [&](const Point_3 &pt1, const Point_3 &pt2) {
-				  return CGAL::squared_distance(source, pt1) < CGAL::squared_distance(source, pt2);});
+		std::sort(splitters.begin(), splitters.end(), 
+			      [&](const Point_3 &pt1, const Point_3 &pt2) {
+			      return CGAL::squared_distance(source, pt1) < 
+				         CGAL::squared_distance(source, pt2); });
 
 		// Split edge into edges
 		for (auto i = 0; i < splitters.size(); i++) {
-			for (auto j = i + 1; j < splitters.size(); j++) {
-				// Define plane intersection
-				Plane_intersection edge;
+			int j = i + 1;
+			if (j >= splitters.size()) { break; }
 
-				// Add geometry
-				source = splitters[i];
-				target = splitters[j];
-				edge.segment = Segment_3(splitters[i], splitters[j]);
+			// Define plane intersection
+			Plane_intersection edge;
 
-				// Add supporting plane ==
-				// The same as of the original segment!
-				edge.planes.insert(segment_planes.begin(), segment_planes.end());
+			// Add geometry
+			source = splitters[i];
+			target = splitters[j];
+			edge.segment = Segment_3(splitters[i], splitters[j]);
 
-				edges.push_back(edge);
-			}
+			// Add supporting plane ==
+			// The same as of the original segment!
+			edge.planes.insert(segment_planes.begin(), segment_planes.end());
+
+			edges.push_back(edge);
 		}
 	}
 

@@ -22,56 +22,6 @@ inline std::vector<Segment_2> project_segments(Plane_3* plane, std::vector<Segme
 	return segments_2d;
 }
 
-
-// Divide segments to subsegments
-inline std::vector<Segment_2> split_segments(std::vector<Segment_2>* segments) {
-	std::vector<Segment_2> sub_segments;
-
-	// Compute segment intersections
-	std::list<Point_2> segment_points;
-	Point_2 source, target;
-	Segment_2 segment;
-	for (auto segment_1 : *segments) {
-		for (auto segment_2 : *segments) {
-			// Compute intersection
-			auto intersection = CGAL::intersection(segment_1, segment_2);
-
-			// Handle intersection
-			if (intersection != boost::none) {
-				if (const Point_2* point = boost::get<Point_2>(&(*intersection))) {
-					segment_points.push_back(*point);
-				}
-			}
-		}
-
-		// Sort segment points by distance to source
-		source = segment_1.source();
-		target = segment_1.target();
-		segment_points.sort([&](const Point_2 &pt1, const Point_2 &pt2) {
-			return CGAL::squared_distance(source, pt1) < CGAL::squared_distance(source, pt2);
-		});
-
-		// Construct subsegments
-		for (auto point : segment_points) {
-			segment = Segment_2(source, point);
-			// Check if degenerate
-			if (!segment.is_degenerate()) { 
-				sub_segments.push_back(segment); 
-			}
-			source = point;
-		}
-		// Add final subsegment
-		segment = Segment_2(source, target);
-		if (!segment.is_degenerate()) { sub_segments.push_back(segment); }
-
-		// Clear
-		segment_points.clear();
-	}
-
-	return sub_segments;
-}
-
-
 // Construct simple polygons
 inline std::vector<Polygon_2> construct_polygons(std::vector<Segment_2>* segments) {
 	std::vector<Polygon_2> polygons;
@@ -112,17 +62,12 @@ inline std::vector<Polygon_2> construct_polygons(std::vector<Segment_2>* segment
 }
 
 
-inline std::vector<Polygon_2> segments_to_polygons(const Mesh* mesh, unsigned int id, Plane_3* plane, std::vector<Segment_3>* segments) {
+inline std::vector<Polygon_2> segments_to_polygons(Plane_3* plane, std::vector<Segment_3>* segments) {
 	// Project segments on plane
 	std::vector<Segment_2> segments_2d = project_segments(plane, segments);
 
-	// Split segments into subsegments
-	std::vector<Segment_2> sub_segments = split_segments(&segments_2d);
-	//draw_line_segments(&sub_segments, id);
-
 	// Construct simple polygons
-	std::vector<Polygon_2> polygons = construct_polygons(&sub_segments);
-	//draw_polygons(&polygons, id);
+	std::vector<Polygon_2> polygons = construct_polygons(&segments_2d);
 
 	return polygons;
 }
