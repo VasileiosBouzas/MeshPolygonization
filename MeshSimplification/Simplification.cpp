@@ -32,14 +32,13 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 	// Compute mesh faces
 	std::vector<Candidate_face> faces = compute_mesh_faces(G, &plane_map, &edges);
 
-	for (auto edge : edges) {
-		auto vs = edge.vertices;
+	for (auto face : faces) {
+		auto vs = face.vertices;
 		for (auto v : vs) {
 			std::cout << v << ", ";
 		}
 		std::cout << std::endl;
 	}
-	draw_frame(&vertices, &edges);
 
 	// Define simplified mesh
 	Mesh simplified_mesh;

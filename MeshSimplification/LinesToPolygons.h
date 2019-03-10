@@ -28,7 +28,7 @@ inline std::vector<Segment_2> project_segments(Plane_3* plane, std::vector<Plane
 
 
 // Construct simple polygons
-inline std::vector<Candidate_face> construct_candidate_faces(std::vector<Segment_2>* segments, std::vector<int>* plane_edges) {
+inline std::vector<Candidate_face> construct_candidate_faces(std::vector<Segment_2>* segments, std::vector<Plane_intersection>* edges, std::vector<int>* plane_edges) {
 	std::vector<Candidate_face> candidate_faces;
 
 	// Construct 2D arrangement
@@ -41,6 +41,7 @@ inline std::vector<Candidate_face> construct_candidate_faces(std::vector<Segment
 		if (f->is_unbounded()) { continue; }
 
 		// Define candidate face
+		std::vector<int> vertices;
 		Candidate_face candidate_face;
 
 		// Traverse outer boundary of face
@@ -53,17 +54,33 @@ inline std::vector<Candidate_face> construct_candidate_faces(std::vector<Segment
 
 			// Find original segment
 			int pos;
+			bool is_opposite = false;
 			for (auto i = 0; i < segments->size(); i++) {
 				Segment_2 segment = (*segments)[i];
-				if (curve == segment || curve == segment.opposite()) {
-					pos = i; break;
-				}
+				if (curve == segment) { pos = i; break;}
 			}
 
 			// Retrieve edge
-			auto edge = (*plane_edges)[pos];
+			auto e = (*plane_edges)[pos];
 			// Add to face
-			candidate_face.edges.push_back(edge);
+			candidate_face.edges.push_back(e);
+
+			// Check curve orientation to original segment
+			bool curve_has_same_direction = (cc->curve().source() == cc->source()->point());
+
+			// Add vertices to face (CCW)
+			int vertex;
+			// If same direction
+			if (curve_has_same_direction) {
+				// Add edge source
+				vertex = (*edges)[e].vertices[0];
+			}
+			// If opposite
+			else {
+				// Add edge target
+				vertex = (*edges)[e].vertices[1];
+			}
+			candidate_face.vertices.push_back(vertex);
 
 		} while (++cc != f->outer_ccb());
 
@@ -80,7 +97,7 @@ inline std::vector<Candidate_face> segments_to_polygons(Plane_3* plane, std::vec
 	std::vector<Segment_2> segments = project_segments(plane, edges, plane_edges);
 
 	// Construct simple polygons
-	std::vector<Candidate_face> candidate_faces = construct_candidate_faces(&segments, plane_edges);
+	std::vector<Candidate_face> candidate_faces = construct_candidate_faces(&segments, edges, plane_edges);
 
 	return candidate_faces;
 }

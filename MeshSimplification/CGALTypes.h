@@ -128,6 +128,9 @@ struct Candidate_face {
 	// Edges
 	std::vector<int> edges;
 
+	// Vertices
+	std::vector<int> vertices;
+
 	// Supporting plane
 	int plane;
 };
