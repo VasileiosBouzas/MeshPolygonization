@@ -25,12 +25,21 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 	std::vector<Triple_intersection> vertices = compute_mesh_vertices(&bbox, G, &plane_map);
 
 	// Compute plane intersections
-	std::vector<Plane_intersection> edges = compute_mesh_edges(&bbox, G, &plane_map);
+	std::vector<Plane_intersection> segments = compute_mesh_edges(&bbox, G, &plane_map);
 	// Split edges
-	edges = split_edges(&edges, &vertices);
+	std::vector<Plane_intersection> edges = split_edges(&segments, &vertices);
 
 	// Compute mesh faces
 	std::vector<Candidate_face> faces = compute_mesh_faces(G, &plane_map, &edges);
+
+	for (auto edge : edges) {
+		auto vs = edge.vertices;
+		for (auto v : vs) {
+			std::cout << v << ", ";
+		}
+		std::cout << std::endl;
+	}
+	draw_frame(&vertices, &edges);
 
 	// Define simplified mesh
 	Mesh simplified_mesh;
@@ -118,7 +127,7 @@ std::vector<Plane_intersection> Simplification::compute_mesh_edges(const Bbox_3*
 
 
 // Split mesh edges with mesh vertices
-std::vector<Plane_intersection> Simplification::split_edges(std::vector<Plane_intersection>* segments, std::vector<Triple_intersection>* points) {
+std::vector<Plane_intersection> Simplification::split_edges(std::vector<Plane_intersection>* segments, std::vector<Triple_intersection>* vertices) {
 	std::vector<Plane_intersection> edges;
 
 	// For each segment
@@ -127,51 +136,60 @@ std::vector<Plane_intersection> Simplification::split_edges(std::vector<Plane_in
 		auto segment_planes = segment.planes;
 
 		// Find vertices to split edge
-		std::vector<Point_3> splitters;
+		std::vector<int> splitters;
 		// For each vertex
-		for (auto point : *points) {
+		for (auto i = 0; i < vertices->size(); i++) {
 			// Retrieve supporting planes
-			auto point_planes = point.planes;
+			auto vertex_planes = (*vertices)[i].planes;
 
 			// Find common supporting planes with edge
 			std::vector<int> common_planes;
-			for (auto plane : point_planes) {
+			for (auto plane : vertex_planes) {
 				auto pos = std::find(segment_planes.begin(), segment_planes.end(), plane);
 				if (pos != segment_planes.end()) { common_planes.push_back(plane); }
 			}
 
 			// Two common planes ==
 			// Vertex lies on edge => split edge!
-			if (common_planes.size() == 2) { splitters.push_back(point.point); }
+			if (common_planes.size() == 2) { splitters.push_back(i); }
 		}
 
 		// Retrieve edge endpoints
 		Point_3 source = segment.segment.source();
-		Point_3 target = segment.segment.source();
+		Point_3 target = segment.segment.target();
 
 		// Sort split points by distance to source
 		std::sort(splitters.begin(), splitters.end(), 
-			      [&](const Point_3 &pt1, const Point_3 &pt2) {
-			      return CGAL::squared_distance(source, pt1) < 
-				         CGAL::squared_distance(source, pt2); });
+			      [&](const int &v1, const int &v2) {
+			      return CGAL::squared_distance(source, (*vertices)[v1].point) < 
+				         CGAL::squared_distance(source, (*vertices)[v2].point); });
 
 		// Split edge into edges
 		for (auto i = 0; i < splitters.size(); i++) {
 			int j = i + 1;
 			if (j >= splitters.size()) { break; }
 
+			// Recover vertices
+			int v1 = splitters[i];
+			int v2 = splitters[j];
+
 			// Define plane intersection
 			Plane_intersection edge;
 
 			// Add geometry
-			source = splitters[i];
-			target = splitters[j];
-			edge.segment = Segment_3(splitters[i], splitters[j]);
+			source = (*vertices)[v1].point;
+			target = (*vertices)[v2].point;
+			edge.segment = Segment_3(source, target);
+
+			// Add vertices
+			edge.vertices.push_back(v1);
+			edge.vertices.push_back(v2);
 
 			// Add supporting plane ==
 			// The same as of the original segment!
 			edge.planes.insert(segment_planes.begin(), segment_planes.end());
 
+			// Update
 			edges.push_back(edge);
 		}
 	}
@@ -207,6 +225,11 @@ std::vector<Candidate_face> Simplification::compute_mesh_faces(const Graph* G, s
 
 		// Construct candidate faces of segment
 		std::vector<Candidate_face> faces = segments_to_polygons(&plane, edges, &plane_edges);
+
+		// Add supporting plane
+		for (auto i = 0; i < faces.size(); i++) {
+			faces[i].plane = id;
+		}
 
 		// Update
 		candidate_faces.insert(candidate_faces.end(), faces.begin(), faces.end());

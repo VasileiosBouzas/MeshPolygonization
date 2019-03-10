@@ -151,24 +151,16 @@ inline void draw_frame(std::vector<Triple_intersection>* vertices, std::vector<P
 	std::ofstream os(oss.str().data());
 
 	// Store points
-	Point_3 point;
-	std::map<Point_3, int> vertex_map;
-	int n = 1;
 	for (auto vertex : *vertices) {
-		point = vertex.point;
-		vertex_map[point] = n;
-		n++;
+		auto point = vertex.point;
 		os << "v " << point.x() << " " << point.y() << " " << point.z() << std::endl;
 	}
 
 	// Store edges
-	Segment_3 segment;
-	Point_3 source, target;
 	for (auto edge : *edges) {
-		segment = edge.segment;
-		source = segment.source();
-		target = segment.target();
-		os << "l " << vertex_map[source] << " " << vertex_map[target] << std::endl;
+		auto source = edge.vertices[0] + 1;
+		auto target = edge.vertices[1] + 1;
+		os << "l " << source << " " << target << std::endl;
 	}
 
 	// Close file
