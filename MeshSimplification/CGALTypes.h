@@ -125,11 +125,17 @@ struct Plane_intersection {
 
 // CANDIDATE FACE //
 struct Candidate_face {
-	// Edges
-	std::vector<int> edges;
+	// 2D Geometry - To compute confidence
+	Polygon_2 polygon;
 
 	// Vertices
 	std::vector<int> vertices;
+
+	// Edges
+	std::vector<int> edges;
+
+	// Confidence - Triangle coverage
+	double conf;
 
 	// Supporting plane
 	int plane;

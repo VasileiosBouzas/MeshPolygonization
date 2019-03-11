@@ -1,7 +1,7 @@
 #include "Simplification.h"
 #include "Segment.h"
 #include "Intersection.h"
-#include "LinesToPolygons.h"
+#include "CandidateFace.h"
 #include "Draw.h"
 
 Simplification::Simplification()
@@ -30,14 +30,10 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 	std::vector<Plane_intersection> edges = split_edges(&segments, &vertices);
 
 	// Compute mesh faces
-	std::vector<Candidate_face> faces = compute_mesh_faces(G, &plane_map, &edges);
+	std::vector<Candidate_face> faces = compute_mesh_faces(mesh, G, &plane_map, &edges);
 
 	for (auto face : faces) {
-		auto vs = face.vertices;
-		for (auto v : vs) {
-			std::cout << v << ", ";
-		}
-		std::cout << std::endl;
+		std::cout << face.conf << std::endl;
 	}
 
 	// Define simplified mesh
@@ -198,7 +194,7 @@ std::vector<Plane_intersection> Simplification::split_edges(std::vector<Plane_in
 
 
 // Compute mesh faces
-std::vector<Candidate_face> Simplification::compute_mesh_faces(const Graph* G, std::map<unsigned int, Plane_3>* plane_map, std::vector<Plane_intersection>* edges) {
+std::vector<Candidate_face> Simplification::compute_mesh_faces(const Mesh* mesh, const Graph* G, std::map<unsigned int, Plane_3>* plane_map, std::vector<Plane_intersection>* edges) {
 	std::vector<Candidate_face> candidate_faces;
 
 	// Iterate segments
@@ -223,12 +219,7 @@ std::vector<Candidate_face> Simplification::compute_mesh_faces(const Graph* G, s
 		}
 
 		// Construct candidate faces of segment
-		std::vector<Candidate_face> faces = segments_to_polygons(&plane, edges, &plane_edges);
-
-		// Add supporting plane
-		for (auto i = 0; i < faces.size(); i++) {
-			faces[i].plane = id;
-		}
+		std::vector<Candidate_face> faces = compute_candidate_faces(mesh, id, &plane, edges, &plane_edges);
 
 		// Update
 		candidate_faces.insert(candidate_faces.end(), faces.begin(), faces.end());
