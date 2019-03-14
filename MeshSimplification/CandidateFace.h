@@ -201,6 +201,7 @@ inline double compute_confidence(Polygon_2* polygon, std::vector<Polygon_2>* fac
 inline std::vector<Candidate_face> compute_candidate_faces(const Mesh* mesh, unsigned int id, Plane_3* plane, std::vector<Plane_intersection>* edges, std::vector<int>* plane_edges) {
 	// Project segments on plane
 	std::vector<Segment_2> segments = project_segments(plane, edges, plane_edges);
+	//draw_line_segments(&segments, id);
 
 	// Construct simple polygons
 	std::vector<Candidate_face> candidate_faces = define_faces(id, &segments, edges, plane_edges);
@@ -210,10 +211,13 @@ inline std::vector<Candidate_face> compute_candidate_faces(const Mesh* mesh, uns
 	//draw_mesh_segment(&faces, id);
 
 	// Compute face confidences
+	std::vector<Polygon_2> polygons;
 	for (auto i = 0; i < candidate_faces.size(); i++) {
 		Polygon_2 polygon = candidate_faces[i].polygon;
 		candidate_faces[i].conf = compute_confidence(&polygon, &faces);
+		polygons.push_back(polygon);
 	}
+	//draw_polygons(&polygons, id);
 
 	return candidate_faces;
 }

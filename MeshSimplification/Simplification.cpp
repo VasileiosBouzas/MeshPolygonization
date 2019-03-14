@@ -233,8 +233,8 @@ void Simplification::cross_section_split(std::vector<Plane_intersection>* edges,
 	e1.vertices.push_back(e->vertices[0]);
 	e1.vertices.push_back(idx);
 
-	e2.vertices.push_back(e->vertices[1]);
 	e2.vertices.push_back(idx);
+	e2.vertices.push_back(e->vertices[1]);
 
 	// Add supporting planes == equal to the original
 	e1.planes = e->planes;
@@ -258,10 +258,10 @@ void Simplification::cross_section_split(std::vector<Plane_intersection>* edges,
 
 // Refine edges
 void Simplification::refine_edges(std::vector<Plane_intersection>* edges, std::vector<Triple_intersection>* vertices, std::map<unsigned int, Plane_3>* plane_map) {
-	/*bool splitted = true;
+	bool splitted = true;
 	do {
 		splitted = false;
-*/
+
 		// Check for edge intersections
 		for (auto i = 0; i < edges->size(); i++) {
 			// Retrieve segment
@@ -320,16 +320,14 @@ void Simplification::refine_edges(std::vector<Plane_intersection>* edges, std::v
 						cross_section_split(edges, &ei, pt, idx); // First edge
 						cross_section_split(edges, &ej, pt, idx); // Second edge
 
-						break;
-
-						/*splitted = true; break;*/
+						splitted = true; break;
 					}
 				}
 			}
 
-			/*if (splitted) break;*/
+			if (splitted) break;
 		}
-	/*} while (splitted);*/
+	} while (splitted);
 }
 
 
