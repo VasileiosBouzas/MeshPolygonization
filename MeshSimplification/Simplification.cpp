@@ -1,7 +1,7 @@
 #include "Simplification.h"
 #include "Segment.h"
 #include "Intersection.h"
-#include "CandidateFace.h"
+#include "CandidateFace.h" 
 #include "Draw.h"
 
 Simplification::Simplification()
@@ -26,18 +26,26 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 
 	// Compute plane intersections
 	std::vector<Plane_intersection> segments = compute_mesh_edges(&bbox, G, &plane_map);
-	// Split edges
+
+	// Split & refine mesh edges
 	std::vector<Plane_intersection> edges = split_edges(&segments, &vertices);
+	refine_edges(&edges, &vertices, &plane_map);
+
+	draw_frame(&vertices, &edges);
 
 	// Compute mesh faces
 	std::vector<Candidate_face> faces = compute_mesh_faces(mesh, G, &plane_map, &edges);
 
+	Mesh simplified_mesh;
 	for (auto face : faces) {
-		std::cout << face.conf << std::endl;
+		std::vector<Vertex> fv;
+		for (auto i : face.vertices) {
+			auto v = simplified_mesh.add_vertex(vertices[i].point);
+			fv.push_back(v);
+		}
+		simplified_mesh.add_face(fv);
 	}
 
-	// Define simplified mesh
-	Mesh simplified_mesh;
 	return simplified_mesh;
 }
 
@@ -139,10 +147,9 @@ std::vector<Plane_intersection> Simplification::split_edges(std::vector<Plane_in
 
 			// Find common supporting planes with edge
 			std::vector<int> common_planes;
-			for (auto plane : vertex_planes) {
-				auto pos = std::find(segment_planes.begin(), segment_planes.end(), plane);
-				if (pos != segment_planes.end()) { common_planes.push_back(plane); }
-			}
+			std::set_intersection(segment_planes.begin(), segment_planes.end(), 
+								  vertex_planes.begin(), vertex_planes.end(),
+				                  std::back_inserter(common_planes));
 
 			// Two common planes ==
 			// Vertex lies on edge => split edge!
@@ -193,6 +200,139 @@ std::vector<Plane_intersection> Simplification::split_edges(std::vector<Plane_in
 }
 
 
+// 3D segment intersection
+bool Simplification::do_intersect(Segment_3* segment, Plane_3* plane) {
+	// Retrieve segment endpoints
+	Point_3 s = segment->source();
+	Point_3 t = segment->target();
+
+	// Oriented sides
+	auto ss = plane->oriented_side(s);
+	auto st = plane->oriented_side(t);
+
+	// Either the endpoints must lie on the same oriented side
+	// or one on the oriented boundary and the other on any side
+	if ((ss == CGAL::ON_POSITIVE_SIDE && st == CGAL::ON_NEGATIVE_SIDE) ||
+		(ss == CGAL::ON_NEGATIVE_SIDE && st == CGAL::ON_POSITIVE_SIDE))
+		return true;
+		
+	return false;
+}
+
+
+// Cross-section split
+void Simplification::cross_section_split(std::vector<Plane_intersection>* edges, Plane_intersection* e, const Point_3* pt, int idx) {
+	// Create two edges out of the old edge
+    Plane_intersection e1, e2;
+
+	// Add geometry
+	e1.segment = Segment_3(e->segment.source(), *pt);
+	e2.segment = Segment_3(*pt, e->segment.target());
+
+	// Add vertices
+	e1.vertices.push_back(e->vertices[0]);
+	e1.vertices.push_back(idx);
+
+	e2.vertices.push_back(e->vertices[1]);
+	e2.vertices.push_back(idx);
+
+	// Add supporting planes == equal to the original
+	e1.planes = e->planes;
+	e2.planes = e->planes;
+
+	// Delete original segment
+	for (auto i = 0; i < edges->size(); i++) {
+		auto edge = (*edges)[i];
+		// Plane intersection equality
+		if (e->segment == edge.segment && e->planes == edge.planes) {
+			edges->erase(edges->begin() + i);
+			break;
+		}
+	}
+
+	// Add new edges
+	edges->push_back(e1);
+	edges->push_back(e2);
+}
+
+
+// Refine edges
+void Simplification::refine_edges(std::vector<Plane_intersection>* edges, std::vector<Triple_intersection>* vertices, std::map<unsigned int, Plane_3>* plane_map) {
+	/*bool splitted = true;
+	do {
+		splitted = false;
+*/
+		// Check for edge intersections
+		for (auto i = 0; i < edges->size(); i++) {
+			// Retrieve segment
+			auto ei = (*edges)[i];
+			auto seg_i = ei.segment;
+			auto pl_i = ei.planes;
+
+			// Check all other segments
+			for (auto j = i + 1; j < edges->size(); j++) {
+				// Retrieve segment
+				auto ej = (*edges)[j];
+				auto seg_j = ej.segment;
+				auto pl_j = ej.planes;
+
+				// If edges share point, continue
+				if (seg_i.has_on(seg_j.source()) ||
+					seg_i.has_on(seg_j.target()))
+					continue;
+
+				// Check common planes
+				std::vector<int> common_planes;
+				std::set_intersection(pl_i.begin(), pl_i.end(),
+					pl_j.begin(), pl_j.end(),
+					std::back_inserter(common_planes));
+
+				// Two edges can have at most two common planes!
+				// 0 common planes == irrelevant
+				// 1 common planes == edges must intersect either at endpoints (good!) or inside (very bad...)
+				// 2 common planes == edges are part of the same intersection, continue
+				if (common_planes.size() != 1) { continue; }
+
+				// Retrieve all other planes that the common one
+				std::vector<int> diff_i, diff_j;
+				std::set_difference(pl_i.begin(), pl_i.end(), common_planes.begin(), common_planes.end(), std::back_inserter(diff_i));
+				std::set_difference(pl_j.begin(), pl_j.end(), common_planes.begin(), common_planes.end(), std::back_inserter(diff_j));
+				auto plane_i = (*plane_map)[diff_i[0]];
+				auto plane_j = (*plane_map)[diff_j[0]];
+
+				// Check if they intersect inside
+				if (do_intersect(&seg_i, &plane_j) && do_intersect(&seg_j, &plane_i)) {
+					// Compute intersection
+					auto intersection = CGAL::intersection(seg_i.supporting_line(), plane_j);
+
+					if (const Point_3* pt = boost::get<Point_3>(&(*intersection))) {
+						// Create triple intersection
+						Triple_intersection vertex;
+						vertex.point = *pt;
+						vertex.planes.insert(ei.planes.begin(), ei.planes.end());
+						vertex.planes.insert(ej.planes.begin(), ej.planes.end());
+						vertices->push_back(vertex);
+
+						// New intersection index
+						int idx = int(vertices->size()) - 1;
+
+						// Split edges
+						cross_section_split(edges, &ei, pt, idx); // First edge
+						cross_section_split(edges, &ej, pt, idx); // Second edge
+
+						break;
+
+						/*splitted = true; break;*/
+					}
+				}
+			}
+
+			/*if (splitted) break;*/
+		}
+	/*} while (splitted);*/
+}
+
+
 // Compute mesh faces
 std::vector<Candidate_face> Simplification::compute_mesh_faces(const Mesh* mesh, const Graph* G, std::map<unsigned int, Plane_3>* plane_map, std::vector<Plane_intersection>* edges) {
 	std::vector<Candidate_face> candidate_faces;
@@ -211,9 +351,9 @@ std::vector<Candidate_face> Simplification::compute_mesh_faces(const Mesh* mesh,
 		for (auto i = 0; i < edges->size(); i++) {
 			// Retrieve edge planes
 			auto planes = (*edges)[i].planes;
-			
+
 			// Check for segment plane
-			if (planes.find(id) != planes.end()) { 
+			if (planes.find(id) != planes.end()) {
 				plane_edges.push_back(i);
 			}
 		}

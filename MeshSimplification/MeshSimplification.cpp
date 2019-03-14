@@ -216,7 +216,8 @@ void writeMesh(const Mesh* mesh, std::string filename) {
 void writeSimplified(const Mesh* mesh, std::string filename) {
 	// Initialize .ply file
 	std::string file = "simplified/" + filename + ".ply";
-	p_ply ply = ply_create(file.c_str(), PLY_LITTLE_ENDIAN, NULL, 0, NULL);
+	/*p_ply ply = ply_create(file.c_str(), PLY_LITTLE_ENDIAN, NULL, 0, NULL);*/
+	p_ply ply = ply_create(file.c_str(), PLY_ASCII, NULL, 0, NULL);
 
 	// Vertices
 	const char* name = "vertex";

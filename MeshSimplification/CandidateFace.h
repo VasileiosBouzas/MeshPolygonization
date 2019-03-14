@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Utils.h"
+#include "Draw.h"
 
 
 // Convert 3D segments to 2D segments
@@ -206,6 +207,7 @@ inline std::vector<Candidate_face> compute_candidate_faces(const Mesh* mesh, uns
 
 	// Project segment faces to 2D polygons
 	std::vector<Polygon_2> faces = project_segment_faces(mesh, id, plane);
+	//draw_mesh_segment(&faces, id);
 
 	// Compute face confidences
 	for (auto i = 0; i < candidate_faces.size(); i++) {
