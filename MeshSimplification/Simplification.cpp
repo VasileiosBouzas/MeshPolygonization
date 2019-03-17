@@ -1,7 +1,7 @@
 #include "Simplification.h"
 #include "Segment.h"
 #include "Intersection.h"
-#include "CandidateFace.h" 
+#include "CandidateFace.h"
 #include "Draw.h"
 
 Simplification::Simplification()
@@ -31,22 +31,11 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 	std::vector<Plane_intersection> edges = split_edges(&segments, &vertices);
 	refine_edges(&edges, &vertices, &plane_map);
 
-	draw_frame(&vertices, &edges);
-
 	// Compute mesh faces
 	std::vector<Candidate_face> faces = compute_mesh_faces(mesh, G, &plane_map, &edges);
 
-	Mesh simplified_mesh;
-	for (auto face : faces) {
-		std::vector<Vertex> fv;
-		for (auto i : face.vertices) {
-			auto v = simplified_mesh.add_vertex(vertices[i].point);
-			fv.push_back(v);
-		}
-		simplified_mesh.add_face(fv);
-	}
-
-	return simplified_mesh;
+	// Optimize
+	return simplify(&vertices, &edges, &faces);
 }
 
 
@@ -121,7 +110,9 @@ std::vector<Plane_intersection> Simplification::compute_mesh_edges(const Bbox_3*
 			}
 
 			// If not, add
-			if (!found) { segments.push_back(segment); }
+			if (!found) { 
+				segments.push_back(segment); 
+			}
 		}
 	}
 
@@ -332,7 +323,10 @@ void Simplification::refine_edges(std::vector<Plane_intersection>* edges, std::v
 
 
 // Compute mesh faces
-std::vector<Candidate_face> Simplification::compute_mesh_faces(const Mesh* mesh, const Graph* G, std::map<unsigned int, Plane_3>* plane_map, std::vector<Plane_intersection>* edges) {
+std::vector<Candidate_face> Simplification::compute_mesh_faces(const Mesh* mesh, const Graph* G, 
+															   std::map<unsigned int, Plane_3>* plane_map, 
+	                                                           std::vector<Plane_intersection>* edges)
+{
 	std::vector<Candidate_face> candidate_faces;
 
 	// Iterate segments
@@ -377,4 +371,48 @@ std::vector<Candidate_face> Simplification::compute_mesh_faces(const Mesh* mesh,
 	}
 
 	return candidate_faces;
+}
+
+
+// Simplify
+Mesh Simplification::simplify(std::vector<Triple_intersection>* vertices, std::vector<Plane_intersection>* edges, std::vector<Candidate_face>* faces) {
+	// Construct proxy mesh
+	Mesh proxy_mesh;
+
+	// Face attributes //
+	// Face index
+	Mesh::Property_map<Face, std::size_t> index = proxy_mesh.add_property_map<Face, std::size_t>("f:index").first;
+
+	// Number of supporting faces
+	Mesh::Property_map<Face, std::size_t> supporting_face_num = proxy_mesh.add_property_map<Face, std::size_t>("f:supporting_face_num").first;
+
+	// Covered area
+	Mesh::Property_map<Face, double> covered_area = proxy_mesh.add_property_map<Face, double>("f:covered_area").first;
+
+	// Total area
+	Mesh::Property_map<Face, double> area = proxy_mesh.add_property_map<Face, double>("f:area").first;
+	// Face attributes //
+
+	// Define faces
+	for (std::size_t idx = 0; idx < faces->size(); idx++) {
+		// Candidate face
+		Candidate_face face = (*faces)[idx];
+
+		// Add topology
+		std::vector<Vertex> face_vertices;
+		for (auto i : face.vertices) {
+			Triple_intersection vertex = (*vertices)[i];
+			Vertex v = proxy_mesh.add_vertex(vertex.point);
+			face_vertices.push_back(v);
+		}
+		Face f = proxy_mesh.add_face(face_vertices);
+
+		// Add attributes
+		index[f] = idx;                                    // Face index
+		supporting_face_num[f] = face.supporting_face_num; // Number of supporting faces
+		covered_area[f] = face.covered_area;               // Covered area
+		area[f] = face.area;                               // Total area
+	}
+
+	return proxy_mesh;
 }

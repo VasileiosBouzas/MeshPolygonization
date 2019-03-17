@@ -28,7 +28,7 @@ inline std::vector<Segment_2> project_segments(Plane_3* plane, std::vector<Plane
 
 
 // Construct simple polygons
-inline std::vector<Candidate_face> define_faces(unsigned int id, std::vector<Segment_2>* segments, std::vector<Plane_intersection>* edges, std::vector<int>* plane_edges) {
+inline std::vector<Candidate_face> define_faces(unsigned int id, std::vector<Segment_2>* segments, std::vector<Plane_intersection>* edges, std::vector<int>* plane_edges, Plane_3* plane) {
 	std::vector<Candidate_face> candidate_faces;
 
 	// Construct 2D arrangement
@@ -133,7 +133,8 @@ inline std::vector<Polygon_2> project_segment_faces(const Mesh* mesh, unsigned i
 
 
 // Compute confidence
-inline double compute_confidence(Polygon_2* polygon, std::vector<Polygon_2>* faces) {
+inline std::pair<std::size_t, double> compute_confidence(Polygon_2* polygon, std::vector<Polygon_2>* faces) {
+	std::size_t num = 0;
 	double area = 0;
 
 	// Iterate segment faces
@@ -160,6 +161,7 @@ inline double compute_confidence(Polygon_2* polygon, std::vector<Polygon_2>* fac
 			// If face is inside
 			if (is_inside) {
 				// Include in total area
+				num++;
 				area += std::abs(face.area());
 			}
 			// If face intersects (at least one vertex is inside polygon)
@@ -189,12 +191,13 @@ inline double compute_confidence(Polygon_2* polygon, std::vector<Polygon_2>* fac
 
 				// Construct polygon and include in total area
 				Polygon_2 pol(ordered.begin(), ordered.end());
+				num++;
 				area += std::abs(pol.area());
 			}
 		}
 	}
 
-	return area / std::abs(polygon->area());
+	return std::make_pair(num, area);
 }
 
 
@@ -204,18 +207,25 @@ inline std::vector<Candidate_face> compute_candidate_faces(const Mesh* mesh, uns
 	//draw_line_segments(&segments, id);
 
 	// Construct simple polygons
-	std::vector<Candidate_face> candidate_faces = define_faces(id, &segments, edges, plane_edges);
+	std::vector<Candidate_face> candidate_faces = define_faces(id, &segments, edges, plane_edges, plane);
 
 	// Project segment faces to 2D polygons
 	std::vector<Polygon_2> faces = project_segment_faces(mesh, id, plane);
 	//draw_mesh_segment(&faces, id);
 
 	// Compute face confidences
-	std::vector<Polygon_2> polygons;
 	for (auto i = 0; i < candidate_faces.size(); i++) {
 		Polygon_2 polygon = candidate_faces[i].polygon;
-		candidate_faces[i].conf = compute_confidence(&polygon, &faces);
-		polygons.push_back(polygon);
+		auto pair = compute_confidence(&polygon, &faces);
+
+		// Number of supporting faces
+		candidate_faces[i].supporting_face_num = pair.first;
+
+		// Covered area
+		candidate_faces[i].covered_area = pair.second;
+
+		// Total area
+		candidate_faces[i].area = polygon.area();
 	}
 	//draw_polygons(&polygons, id);
 

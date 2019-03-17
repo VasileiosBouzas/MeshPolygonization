@@ -19,5 +19,6 @@ private:
 	void cross_section_split(std::vector<Plane_intersection>* edges, Plane_intersection* e, const Point_3* pt, int idx);
 	void refine_edges(std::vector<Plane_intersection>* edges, std::vector<Triple_intersection>* vertices, std::map<unsigned int, Plane_3>* plane_map);
 	std::vector<Candidate_face> compute_mesh_faces(const Mesh* mesh, const Graph* G, std::map<unsigned int, Plane_3>* plane_map, std::vector<Plane_intersection>* edges);
+	Mesh simplify(std::vector<Triple_intersection>* vertices, std::vector<Plane_intersection>* edges, std::vector<Candidate_face>* faces);
 };
 

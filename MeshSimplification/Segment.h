@@ -33,14 +33,13 @@ inline Vector_3 compute_segment_orientation(const Mesh* mesh, unsigned int id) {
 	// Select segment by id
 	std::set<Face> segment = select_segment(mesh, id);
 
-	Vector_3 avg(0.0, 0.0, 0.0);
-	int n = 0;
-	for (auto face : segment) {
-		avg += CGAL::Polygon_mesh_processing::compute_face_normal(face, *mesh);
-		n++;
-	}
+	FProp_double planarity = mesh->property_map<Face, double>("f:planarity").first;
+	auto max_face = std::max_element(segment.begin(), segment.end(),
+		                             [&](const Face &a, const Face &b)
+	                                 {return planarity[a] < planarity[b]; });
 
-	return avg / n;
+	Vector_3 normal = CGAL::Polygon_mesh_processing::compute_face_normal(*max_face, *mesh);
+	return normal;
 }
 
 
