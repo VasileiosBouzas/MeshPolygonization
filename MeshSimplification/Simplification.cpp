@@ -2,6 +2,7 @@
 #include "Segment.h"
 #include "Intersection.h"
 #include "CandidateFace.h"
+#include "Optimization.h"
 #include "Draw.h"
 
 Simplification::Simplification()
@@ -35,7 +36,14 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 	std::vector<Candidate_face> faces = compute_mesh_faces(mesh, G, &plane_map, &edges);
 
 	// Optimize
-	return simplify(&vertices, &edges, &faces);
+	Mesh simplified = simplify(&vertices, &edges, &faces);
+
+	for (auto edge : edges) {
+		if (edge.faces.size() != edge.fan.size())
+			std::cout << "PROBLEM!" << std::endl;
+	}
+
+	return simplified;
 }
 
 
@@ -381,7 +389,7 @@ Mesh Simplification::simplify(std::vector<Triple_intersection>* vertices, std::v
 
 	// Face attributes //
 	// Face index
-	Mesh::Property_map<Face, std::size_t> index = proxy_mesh.add_property_map<Face, std::size_t>("f:index").first;
+	Mesh::Property_map<Face, std::size_t> face_indices = proxy_mesh.add_property_map<Face, std::size_t>("f:index").first;
 
 	// Number of supporting faces
 	Mesh::Property_map<Face, std::size_t> supporting_face_num = proxy_mesh.add_property_map<Face, std::size_t>("f:supporting_face_num").first;
@@ -394,10 +402,7 @@ Mesh Simplification::simplify(std::vector<Triple_intersection>* vertices, std::v
 	// Face attributes //
 
 	// Define faces
-	for (std::size_t idx = 0; idx < faces->size(); idx++) {
-		// Candidate face
-		Candidate_face face = (*faces)[idx];
-
+	for (auto face : *faces) {
 		// Add topology
 		std::vector<Vertex> face_vertices;
 		for (auto i : face.vertices) {
@@ -408,11 +413,26 @@ Mesh Simplification::simplify(std::vector<Triple_intersection>* vertices, std::v
 		Face f = proxy_mesh.add_face(face_vertices);
 
 		// Add attributes
-		index[f] = idx;                                    // Face index
 		supporting_face_num[f] = face.supporting_face_num; // Number of supporting faces
 		covered_area[f] = face.covered_area;               // Covered area
 		area[f] = face.area;                               // Total area
+
+		// Update edges
+		// Retrieve face edges
+		auto face_edges = face.edges;
+		for (auto i = 0; i < edges->size(); i++) {
+			// Check if edge is in face edges
+			auto pos = std::find(face_edges.begin(), face_edges.end(), i);
+
+			// If so, add to edge fan
+			if (pos != face_edges.end()) { 
+				(*edges)[i].fan.push_back(f);
+			}
+		}
 	}
+
+	std::vector<double> X = optimize(&proxy_mesh, edges);
+	std::cout << X.size() << std::endl;
 
 	return proxy_mesh;
 }

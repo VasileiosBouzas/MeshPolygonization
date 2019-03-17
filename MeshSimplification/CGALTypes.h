@@ -117,6 +117,9 @@ struct Plane_intersection {
 	// Faces
 	std::vector<int> faces;
 
+	// Adjacency fan
+	std::vector<Face> fan;
+
 	// Supporting planes
 	std::set<int> planes;
 };
