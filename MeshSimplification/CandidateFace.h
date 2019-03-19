@@ -161,7 +161,7 @@ inline std::pair<std::size_t, double> compute_confidence(Polygon_2* polygon, std
 			// If face is inside
 			if (is_inside) {
 				// Include in total area
-				num++;
+				num++; // Mark the face as supporting
 				area += std::abs(face.area());
 			}
 			// If face intersects (at least one vertex is inside polygon)
@@ -191,7 +191,6 @@ inline std::pair<std::size_t, double> compute_confidence(Polygon_2* polygon, std
 
 				// Construct polygon and include in total area
 				Polygon_2 pol(ordered.begin(), ordered.end());
-				num++;
 				area += std::abs(pol.area());
 			}
 		}

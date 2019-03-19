@@ -1,10 +1,11 @@
 #pragma once
 
 #include "Utils.h"
-#include "../solver/Mixed_integer_program_traits.h"
-#include "../solver/GLPK_mixed_integer_program_traits.h"
+#include "../solver/SCIP_mixed_integer_program_traits.h"
 
-typedef CGAL::GLPK_mixed_integer_program_traits<double>	 MIP_Solver;
+// https://github.com/CGAL/cgal-public-dev/blob/PolyFit-newPackage-llnan/Polygonal_surface_reconstruction/include/CGAL/Polygonal_surface_reconstruction.h
+
+typedef CGAL::SCIP_mixed_integer_program_traits<double>	 MIP_Solver;
 typedef MIP_Solver::Variable			                 Variable;
 typedef MIP_Solver::Linear_objective	                 Linear_objective;
 typedef MIP_Solver::Linear_constraint	                 Linear_constraint;
@@ -33,9 +34,11 @@ inline std::vector<double> optimize(Mesh* mesh, std::vector<Plane_intersection>*
 
 	// Compute total number of supporting faces of the model
 	double total_faces = 0.0;
+	double total_area = 0.0;
 	std::size_t idx = 0;
 	for (auto f : mesh->faces()) {
 		total_faces += supporting_face_num[f];
+		total_area += area[f];
 		face_indices[f] = idx;
 		++idx;
 	}
@@ -47,7 +50,7 @@ inline std::vector<double> optimize(Mesh* mesh, std::vector<Plane_intersection>*
 	// Determine variable number
 	std::size_t num_faces = mesh->number_of_faces();
 	std::size_t num_edges = edges->size();
-	std::size_t total_variables = num_faces + num_edges;
+	std::size_t total_variables = num_faces + num_edges + num_edges;
 
 	// Add variable
 	const std::vector<Variable*>& variables = solver.create_n_variables(total_variables);
@@ -56,28 +59,13 @@ inline std::vector<double> optimize(Mesh* mesh, std::vector<Plane_intersection>*
 		v->set_variable_type(Variable::BINARY);
 	}
 
-	// Add objective
-	VProp_geom geom = mesh->points();
-	std::vector<Point_3> points;
-	idx = 0;
-	for (auto vertex : mesh->vertices()) {
-		points[idx] = geom[vertex];
-		++idx;
-	}
+	// Chooses a better scale for coefficients
+	double coeff_data_fitting = wt_fitting / total_faces;
+	double coeff_coverage = wt_coverage / total_area;
+	double coeff_complexity = wt_complexity / double(edges->size());
 
-	typedef CGAL::Iso_cuboid_3<Kernel> Box;
-
-	const Box& box = CGAL::bounding_box(points.begin(), points.end());
-	double dx = box.xmax() - box.xmin();
-	double dy = box.ymax() - box.ymin();
-	double dz = box.zmax() - box.zmin();
-	double box_area = double(2.0) * (dx * dy + dy * dz + dz * dx);
-
-	// Chooses a better scale: all actual values multiplied by total number of points
-	double coeff_data_fitting = wt_fitting;
-	double coeff_coverage = total_faces * wt_coverage / box_area;
-
-	Linear_objective * objective = solver.create_objective(Linear_objective::MINIMIZE);
+	// Add objective: MINIMIZATION 
+	Linear_objective* objective = solver.create_objective(Linear_objective::MINIMIZE);
 
 	for (auto f : mesh->faces()) {
 		std::size_t var_idx = face_indices[f];
@@ -89,6 +77,15 @@ inline std::vector<double> optimize(Mesh* mesh, std::vector<Plane_intersection>*
 		// Accumulates model coverage term
 		double uncovered_area = (area[f] - covered_area[f]);
 		objective->add_coefficient(variables[var_idx], coeff_coverage * uncovered_area);
+	}
+
+	std::size_t num_sharp_edges = 0;
+	for (std::size_t i = 0; i < edges->size(); ++i) {
+		std::size_t var_idx = num_faces + num_edges + num_sharp_edges;
+
+		// Accumulates model complexity term
+		objective->add_coefficient(variables[var_idx], coeff_complexity);
+		++num_sharp_edges;
 	}
 
 	// Adds constraints: the number of faces associated with an edge must be either 2 or 0
@@ -106,8 +103,7 @@ inline std::vector<double> optimize(Mesh* mesh, std::vector<Plane_intersection>*
 		// If edge is adjacent to more than 2 faces, choose two of them
 		if (fan.size() >= 2) {
 			std::size_t var_idx = num_faces + var_edge_used_idx;
-			double num = double(fan.size() - 2);
-			c->add_coefficient(variables[var_idx], -2.0 * num);
+			c->add_coefficient(variables[var_idx], -2.0);
 			++var_edge_used_idx;
 		}
 	}

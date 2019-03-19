@@ -251,7 +251,6 @@ void writeSimplified(const Mesh* mesh, std::string filename) {
 
 	// Write faces
 	std::vector<Vertex> vertices;
-	FProp_double conf = mesh->property_map<Face, double>("f:conf").first;
 	for (auto f : mesh->faces()) {
 		// Collect face vertices
 		vertices = vertex_around_face(mesh, f);
