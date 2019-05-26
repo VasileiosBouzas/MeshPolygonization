@@ -3,6 +3,7 @@
 #include "Intersection.h"
 #include "CandidateFace.h"
 #include "Optimization.h"
+#include "Orientation.h"
 #include "Draw.h"
 
 Simplification::Simplification()
@@ -31,6 +32,7 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 	// Split & refine mesh edges
 	std::vector<Plane_intersection> edges = split_edges(&segments, &vertices);
 	refine_edges(&edges, &vertices, &plane_map);
+	//draw_frame(&vertices, &edges);
 
 	// Compute mesh faces
 	std::vector<Candidate_face> faces = compute_mesh_faces(mesh, G, &plane_map, &edges);
@@ -385,6 +387,9 @@ Mesh Simplification::simplify(std::vector<Triple_intersection>* vertices, std::v
 	// Face index
 	Mesh::Property_map<Face, std::size_t> face_indices = proxy_mesh.add_property_map<Face, std::size_t>("f:index").first;
 
+	// Vertex indices
+	Mesh::Property_map<Face, std::vector<int>> vertex_indices = proxy_mesh.add_property_map<Face, std::vector<int>>("f:vertices").first;
+
 	// Number of supporting faces
 	Mesh::Property_map<Face, std::size_t> supporting_face_num = proxy_mesh.add_property_map<Face, std::size_t>("f:supporting_face_num").first;
 
@@ -407,6 +412,7 @@ Mesh Simplification::simplify(std::vector<Triple_intersection>* vertices, std::v
 		Face f = proxy_mesh.add_face(face_vertices);
 
 		// Add attributes
+		vertex_indices[f] = face.vertices;                 // Vertex indices
 		supporting_face_num[f] = face.supporting_face_num; // Number of supporting faces
 		covered_area[f] = face.covered_area;               // Covered area
 		area[f] = face.area;                               // Total area
@@ -425,27 +431,26 @@ Mesh Simplification::simplify(std::vector<Triple_intersection>* vertices, std::v
 		}
 	}
 
-	//// Optimize
-	//std::vector<double> X = optimize(&proxy_mesh, edges);
+	// Optimize
+	std::vector<double> X = optimize(&proxy_mesh, edges);
 
-	//// Faces to delete
-	//std::vector<Face> to_delete;
-	//std::size_t f_idx(0);
-	//for (auto f : proxy_mesh.faces()) {
-	//	if (static_cast<int>(std::round(X[f_idx])) == 0)
-	//		to_delete.push_back(f);
-	//	++f_idx;
-	//}
+	// Faces to delete
+	std::vector<Face> to_delete;
+	std::size_t f_idx(0);
+	for (auto f : proxy_mesh.faces()) {
+		if (static_cast<int>(std::round(X[f_idx])) == 0)
+			to_delete.push_back(f);
+		++f_idx;
+	}
 
-	//// Face deletion
-	//for (std::size_t i = 0; i < to_delete.size(); ++i) {
-	//    Face f = to_delete[i];
-	//	Halfedge h = proxy_mesh.halfedge(f);
-	//	CGAL::Euler::remove_face(h, proxy_mesh);
-	//}
+	// Face deletion
+	for (std::size_t i = 0; i < to_delete.size(); ++i) {
+	    Face f = to_delete[i];
+		Halfedge h = proxy_mesh.halfedge(f);
+		CGAL::Euler::remove_face(h, proxy_mesh);
+	}
 
-	//// Return simplified mesh
-	//Mesh simplified_mesh;
-	//CGAL::copy_face_graph(proxy_mesh, simplified_mesh);
+	// Ensure consistent orientation
+	orient(&proxy_mesh, vertices);
 	return proxy_mesh;
 }

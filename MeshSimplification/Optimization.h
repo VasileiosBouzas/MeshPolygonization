@@ -59,9 +59,16 @@ inline std::vector<double> optimize(Mesh* mesh, std::vector<Plane_intersection>*
 		v->set_variable_type(Variable::BINARY);
 	}
 
+	// Proxy mesh bbox area
+	Bbox_3 box = CGAL::Polygon_mesh_processing::bbox(*mesh);
+	double dx = box.xmax() - box.xmin();
+	double dy = box.ymax() - box.ymin();
+	double dz = box.zmax() - box.zmin();
+	double box_area = double(2.0) * (dx * dy + dy * dz + dz * dx);
+
 	// Chooses a better scale for coefficients
 	double coeff_data_fitting = wt_fitting / total_faces;
-	double coeff_coverage = wt_coverage / total_area;
+	double coeff_coverage = wt_coverage / box_area;
 	double coeff_complexity = wt_complexity / double(edges->size());
 
 	// Add objective: MINIMIZATION 

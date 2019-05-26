@@ -213,8 +213,10 @@ inline std::vector<Candidate_face> compute_candidate_faces(const Mesh* mesh, uns
 	//draw_mesh_segment(&faces, id);
 
 	// Compute face confidences
+	std::vector<Polygon_2> polygons;
 	for (auto i = 0; i < candidate_faces.size(); i++) {
 		Polygon_2 polygon = candidate_faces[i].polygon;
+		polygons.push_back(polygon);
 		auto pair = compute_confidence(&polygon, &faces);
 
 		// Number of supporting faces
@@ -226,7 +228,7 @@ inline std::vector<Candidate_face> compute_candidate_faces(const Mesh* mesh, uns
 		// Total area
 		candidate_faces[i].area = polygon.area();
 	}
-	//draw_polygons(&polygons, id);
+	draw_polygons(&polygons, id);
 
 	return candidate_faces;
 }

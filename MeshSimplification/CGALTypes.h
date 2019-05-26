@@ -128,9 +128,6 @@ struct Plane_intersection {
 
 // CANDIDATE FACE //
 struct Candidate_face {
-	// Geometry
-	std::vector<Point_3> points;
-
 	// 2D Geometry - To compute confidence
 	Polygon_2 polygon;
 

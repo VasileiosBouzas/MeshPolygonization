@@ -84,14 +84,14 @@ std::size_t PlanarSegmentation::apply(Mesh* mesh, double dist_thres, unsigned in
 		}
 
 		// Project vertices on supporting plane
-		/*VProp_geom geom = mesh->points();
+		VProp_geom geom = mesh->points();
 		for (auto face : current_region) {
 			std::vector<Vertex> fc = vertex_around_face(mesh, face);
 			for (auto v : fc) {
 				Point_3 proj = plane.projection(geom[v]);
 				geom[v] = proj;
 			}
-		}*/
+		}
 
 		// Store
 		plane_map[current_index] = plane;
@@ -105,7 +105,8 @@ std::size_t PlanarSegmentation::apply(Mesh* mesh, double dist_thres, unsigned in
 	}
 
 	// Refine segmentation
-    seg_number = refine_segmentation(mesh, seg_number, &plane_map, &segment_map, dist);
+	std::cout << "Number of planes: " << seg_number << std::endl;
+	seg_number = refine_segmentation(mesh, seg_number, &plane_map, &segment_map, dist);
 
 	return seg_number;
 }
@@ -115,8 +116,8 @@ std::size_t PlanarSegmentation::apply(Mesh* mesh, double dist_thres, unsigned in
 Face PlanarSegmentation::get_max_planarity_face(const Mesh* mesh, std::set<Face>* faces) {
 	FProp_double planarity = mesh->property_map<Face, double>("f:planarity").first;
 	auto max_face = std::max_element(faces->begin(), faces->end(),
-									[&](const Face &a, const Face &b)
-									{return planarity[a] < planarity[b]; });
+					[&](const Face &a, const Face &b)
+					{return planarity[a] < planarity[b]; });
 
 	return *max_face;
 }
@@ -156,7 +157,7 @@ bool PlanarSegmentation::check_fitting(Mesh* mesh, std::set<Face>* segment, Plan
 
 	// Good fitting >= 20%
 	double fitting = n / double(segment->size());
-	if (fitting >= 0.2) {return true;}
+	if (fitting >= 0.2) { return true; }
 	return false;
 }
 
@@ -213,8 +214,8 @@ std::size_t PlanarSegmentation::refine_segmentation(Mesh* mesh, std::size_t seg_
 
 		// Sort segments in ascending order of faces
 		std::sort(segments.begin(), segments.end(),
-			[&](const int& id_1, const int& id_2)
-		{return (*segment_map)[id_1] < (*segment_map)[id_2]; });
+				  [&](const int& id_1, const int& id_2)
+			      {return (*segment_map)[id_1] < (*segment_map)[id_2]; });
 
 		// Iterate segments
 		for (auto i = 0; i < segments.size(); i++) {

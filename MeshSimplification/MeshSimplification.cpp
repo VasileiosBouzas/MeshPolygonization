@@ -9,6 +9,7 @@
 #include "StructureGraph.h"
 #include "Segment.h"
 #include "Simplification.h"
+#include <chrono>
 
 // Functions
 void writeGraph(const Mesh* mesh, const Graph* G, std::string filename);
@@ -23,21 +24,6 @@ int main() {
 	std::cout << "Insert file name: ";
 	std::cin >> filename;
 
-	// Planarity inputs
-	unsigned int num_rings;
-	std::cout << "Insert order of k-ring neighborhood: ";
-	std::cin >> num_rings;
-
-	// Segmentation inputs
-	double dist_thres;
-	std::cout << "Insert distance threshold: ";
-	std::cin >> dist_thres;
-
-	// StructureGraph inputs
-	double imp_thres;
-	std::cout << "Insert importance threshold: ";
-	std::cin >> imp_thres;
-
 	// Read mesh
 	Mesh mesh;
 	std::string file = "data//" + filename + ".off";
@@ -46,45 +32,71 @@ int main() {
 		std::cerr << "Input is not a triangle mesh" << std::endl;
 		return EXIT_FAILURE;
 	}
+	
+	// Planarity inputs
+	unsigned int num_rings = 3;
+	/*std::cout << "Insert order of k-ring neighborhood: ";
+	std::cin >> num_rings;*/
+
+	// Segmentation inputs
+	double dist_thres = 0;
+	VProp_geom geom = mesh.points();
+	for (auto h : mesh.halfedges()) {
+		auto source = geom[mesh.source(h)];
+		auto target = geom[mesh.target(h)];
+		dist_thres += std::sqrt(CGAL::squared_distance(source, target));
+	}
+	dist_thres /= mesh.number_of_halfedges();
+	std::cout << "Distance threshold: " << std::setprecision(2) << dist_thres << std::endl;
+	std::cout << "Insert distance threshold: ";
+	std::cin >> dist_thres;
+
+	// StructureGraph inputs
+	double imp_thres;
+	std::cout << "Insert importance threshold: ";
+	std::cin >> imp_thres;
 
 	// Calculate planarity
-	time_t start = time(NULL);
+	auto start = std::chrono::steady_clock::now();
 	Planarity plan;
 	plan.compute(&mesh, num_rings);
 	// Execution time
-	time_t end;
-	end = time(NULL);
-	std::cout << "Planarity: " << end - start << " secs" << std::endl;
+	auto end = std::chrono::steady_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+	std::cout << "Planarity: " << std::setprecision(1) << duration.count() / 1000.0 << " secs" << std::endl;
 
 	// Initialize segmentation
-	start = time(NULL);
+	start = std::chrono::steady_clock::now();
 	PlanarSegmentation seg;
 	std::size_t seg_number = seg.apply(&mesh, dist_thres, num_rings);
 	// Execution time
-	end = time(NULL);
-	std::cout << "Segmentation: " << end - start << " secs" << std::endl;
+	end = std::chrono::steady_clock::now();
+	duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+	std::cout << "Segmentation: " << std::setprecision(1) << duration.count() / 1000.0 << " secs" << std::endl;
 
 	// StructureGraph
-	start = time(NULL);
+	start = std::chrono::steady_clock::now();
 	StructureGraph graph;
 	Graph structure_graph = graph.construct(&mesh, seg_number, imp_thres);
 	// Execution time
-	end = time(NULL);
-	std::cout << "Structure Graph: " << end - start << " secs" << std::endl;
+	end = std::chrono::steady_clock::now();
+	duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+	std::cout << "Structure Graph: " << std::setprecision(1) << duration.count() / 1000.0 << " secs" << std::endl;
 
-	// Simplification
-	start = time(NULL);
-	Simplification simpl;
-	Mesh simplified = simpl.apply(&mesh, &structure_graph);
-	// Execution time
-	end = time(NULL);
-	std::cout << "Simplification: " << end - start << " secs" << std::endl;
+	// Write original mesh
+	writeMesh(&mesh, filename);
 
 	// Visualize graph
 	writeGraph(&mesh, &structure_graph, filename);
 
-	// Write original mesh
-	writeMesh(&mesh, filename);
+	// Simplification
+	start = std::chrono::steady_clock::now();
+	Simplification simpl;
+	Mesh simplified = simpl.apply(&mesh, &structure_graph);
+	// Execution time
+	end = std::chrono::steady_clock::now();
+	duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+	std::cout << "Simplification: " << std::setprecision(1) << duration.count() / 1000.0 << " secs" << std::endl;
 
 	// Write simplified mesh
 	writeSimplified(&simplified, filename);
@@ -96,10 +108,6 @@ int main() {
 // Write graph
 void writeGraph(const Mesh* mesh, const Graph* G, std::string filename) {
 	unsigned int id;
-	std::set<Face> segment;
-	std::vector<Vertex> vs;
-	std::set<Point_3> points;
-	VProp_geom geom = mesh->points();
 	Point_3 centroid;
 
 	// Open file
@@ -118,8 +126,6 @@ void writeGraph(const Mesh* mesh, const Graph* G, std::string filename) {
 
 		// Write vertex
 		fout << "v " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
-
-		points.clear();
 	}
 
 	// Iterate graph edges
@@ -234,6 +240,8 @@ void writeSimplified(const Mesh* mesh, std::string filename) {
 	ply_add_element(ply, name, ninstances);
 
 	ply_add_list_property(ply, "vertex_indices", PLY_UCHAR, PLY_INT);
+	/*ply_add_scalar_property(ply, "supporting_face_num", PLY_DOUBLE);
+	ply_add_scalar_property(ply, "covered_area", PLY_DOUBLE);*/
 
 	// Header
 	ply_write_header(ply);
@@ -251,6 +259,8 @@ void writeSimplified(const Mesh* mesh, std::string filename) {
 
 	// Write faces
 	std::vector<Vertex> vertices;
+	Mesh::Property_map<Face, std::size_t> supporting_face_num = mesh->property_map<Face, std::size_t>("f:supporting_face_num").first;
+	Mesh::Property_map<Face, double> covered_area = mesh->property_map<Face, double>("f:covered_area").first;
 	for (auto f : mesh->faces()) {
 		// Collect face vertices
 		vertices = vertex_around_face(mesh, f);
@@ -259,6 +269,9 @@ void writeSimplified(const Mesh* mesh, std::string filename) {
 		for (auto v : vertices) {
 			ply_write(ply, v);
 		}
+
+		/*ply_write(ply, supporting_face_num[f]);
+		ply_write(ply, covered_area[f]);*/
 	}
 
 	// Close
