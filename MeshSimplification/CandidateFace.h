@@ -1,4 +1,3 @@
-// Hello world
 #pragma once
 
 #include "Utils.h"
