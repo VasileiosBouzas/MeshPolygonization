@@ -12,10 +12,9 @@ The proposed methodology is divided into three main stages: (a) primitive detect
 ## Dependencies
 The program was written in C++ (with C++11 functionalities) and compiled in Visual Studio 2017. This implementation is dependent on the following list of libraries:
 
-* CGAL
-* RPly
-*
+* [CGAL v4.13](https://www.cgal.org/)
+* [RPly](http://w3.impa.br/~diego/software/rply/)
 
-
+The solvers needed for the optimization process are provided along with our implementation.
 
 ## Structure
