@@ -1,7 +1,7 @@
-# MeshSimplification
+# MeshPolygonization
 ## Introduction
 
-MeshPolygonization is an implementation of Structure-aware Mesh Simplification, developed during the graduation project of Vasileios Bouzas for the MSc Geomatics of TUDelft, Netherlands (for more details, the thesis is available [here](https://repository.tudelft.nl/islandora/object/uuid%3Aa0faf1a6-9815-4828-9186-a4a16119c71c?collection=education)).
+MeshPolygonization is an implementation of Structure-aware Mesh Polygonization, developed during the graduation project of Vasileios Bouzas for the MSc Geomatics of TUDelft, Netherlands (for more details, the thesis is available [here](https://repository.tudelft.nl/islandora/object/uuid%3Aa0faf1a6-9815-4828-9186-a4a16119c71c?collection=education)).
 
 The main characteristic of this method is structure awareness — namely, the recovery and preservation, for the input mesh, of both its primitives and the interrelationships between them (their configuration in 3D space). This awareness asserts that the resulting mesh closely follows the original and at the same time, dictates the geometric operations needed for its construction in the first place — thus providing accuracy, along with computational efficiency.
 
@@ -15,6 +15,16 @@ The program was written in C++ (with C++11 functionalities) and compiled in Visu
 * [CGAL v4.13](https://www.cgal.org/)
 * [RPly](http://w3.impa.br/~diego/software/rply/)
 
-The solvers needed for the optimization process are provided along with our implementation.
+The solver needed for the optimization process are provided along with our implementation.
 
 ## Structure
+This repository is structured as follows:
+* **MeshPolygonization**: Contains our implementation of Structure-aware Mesh Polygonization
+  The results for each step of our methodology are exported in the following paths:
+  - /data: Here, you can place the meshes you wish to simplify in **.obj** format
+  - /outputs: Contains the results of our segmentation tecnhique. Basically, a .ply mesh enhanced with various properties (planarity,           chart etc.)
+  - /graphs: The structure graph for each processed model are exported here in .ply format
+  - /simplified: The final, simplified version for each processed model can be accessed through here
+* **meshes**: We provide some example meshes to test the implementation
+* **proj**: The project files from Visual Studio
+* **3rd_scip, 3rd_soplex, solver**: The solver for the optimization process, along with its dependencies.
