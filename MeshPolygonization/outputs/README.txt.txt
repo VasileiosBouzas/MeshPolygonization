@@ -1,0 +1,1 @@
+In this folder, the outputs of our segmentation technique are stored

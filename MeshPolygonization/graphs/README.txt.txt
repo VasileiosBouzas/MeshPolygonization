@@ -1,0 +1,1 @@
+In this folder, the structure graph for each processed model is stored
