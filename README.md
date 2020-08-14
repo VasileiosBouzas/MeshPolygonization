@@ -1,7 +1,15 @@
 # MeshPolygonization
 ## Introduction
 
-MeshPolygonization is an implementation of Structure-aware Mesh Polygonization, developed during the graduation project of Vasileios Bouzas for the MSc Geomatics of TUDelft, Netherlands (for more details, the thesis is available [here](https://repository.tudelft.nl/islandora/object/uuid%3Aa0faf1a6-9815-4828-9186-a4a16119c71c?collection=education)).
+MeshPolygonization is the implementation of the MVS (Multi-view Stereo) building mesh simplification method described in the following [paper](https://www.sciencedirect.com/science/article/pii/S0924271620301969):
+```
+Vasileios Bouzas, Hugo Ledoux, and  Liangliang Nan.
+Structure-aware Building Mesh Polygonization. 
+ISPRS Journal of Photogrammetry and Remote Sensing. 167(2020), 432-442, 2020.
+```
+Please consider citing the above paper if you use the code/program (or part of it). 
+
+---
 
 The main characteristic of this method is structure awareness — namely, the recovery and preservation, for the input mesh, of both its primitives and the interrelationships between them (their configuration in 3D space). This awareness asserts that the resulting mesh closely follows the original and at the same time, dictates the geometric operations needed for its construction in the first place — thus providing accuracy, along with computational efficiency.
 
