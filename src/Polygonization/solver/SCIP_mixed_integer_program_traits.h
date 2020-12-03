@@ -50,11 +50,6 @@ namespace CGAL {
 		/// \cond SKIP_IN_MANUAL
 	public:
 		typedef Mixed_integer_program_traits<FT>		Base_class;
-		typedef typename Base_class::Variable			Variable;
-		typedef typename Base_class::Linear_constraint	Linear_constraint;
-		typedef typename Base_class::Linear_objective	Linear_objective;
-		typedef typename Linear_objective::Sense		Sense;
-		typedef typename Variable::Variable_type		Variable_type;
 
 	public:
 
@@ -89,7 +84,7 @@ namespace CGAL {
 		// Creates variables
 		std::vector<SCIP_VAR*> scip_variables;
 		for (std::size_t i = 0; i < Base_class::variables_.size(); ++i) {
-			const Variable* var = Base_class::variables_[i];
+			const Variable<FT>* var = Base_class::variables_[i];
 			SCIP_VAR* v = 0;
 
 			double lb, ub;
@@ -97,13 +92,13 @@ namespace CGAL {
 
 			switch (var->variable_type())
 			{
-			case Variable::CONTINUOUS:
+			case Variable<FT>::CONTINUOUS:
 				SCIP_CALL(SCIPcreateVar(scip, &v, var->name().c_str(), lb, ub, 0.0, SCIP_VARTYPE_CONTINUOUS, TRUE, FALSE, 0, 0, 0, 0, 0));
 				break;
-			case Variable::INTEGER:
+			case Variable<FT>::INTEGER:
 				SCIP_CALL(SCIPcreateVar(scip, &v, var->name().c_str(), lb, ub, 0.0, SCIP_VARTYPE_INTEGER, TRUE, FALSE, 0, 0, 0, 0, 0));
 				break;
-			case Variable::BINARY:
+			case Variable<FT>::BINARY:
 				SCIP_CALL(SCIPcreateVar(scip, &v, var->name().c_str(), 0, 1, 0.0, SCIP_VARTYPE_BINARY, TRUE, FALSE, 0, 0, 0, 0, 0));
 				break;
 			}
@@ -118,9 +113,9 @@ namespace CGAL {
 
 		std::vector<SCIP_CONS*> scip_constraints;
 		for (std::size_t i = 0; i < Base_class::constraints_.size(); ++i) {
-			const Linear_constraint* c = Base_class::constraints_[i];
-			const std::unordered_map<const Variable*, double>& coeffs = c->coefficients();
-			typename std::unordered_map<const Variable*, double>::const_iterator cur = coeffs.begin();
+			const Linear_constraint<FT>* c = Base_class::constraints_[i];
+			const std::unordered_map<const Variable<FT>*, double>& coeffs = c->coefficients();
+			typename std::unordered_map<const Variable<FT>*, double>::const_iterator cur = coeffs.begin();
 
 			std::vector<SCIP_VAR*>	cstr_variables(coeffs.size());
 			std::vector<double>		cstr_values(coeffs.size());
@@ -152,16 +147,16 @@ namespace CGAL {
 		// Sets objective
 
 		// Determines the coefficient of each variable in the objective function
-		const std::unordered_map<const Variable*, double>& obj_coeffs = Base_class::objective_->coefficients();
-		typename std::unordered_map<const Variable*, double>::const_iterator cur = obj_coeffs.begin();
+		const std::unordered_map<const Variable<FT>*, double>& obj_coeffs = Base_class::objective_->coefficients();
+		typename std::unordered_map<const Variable<FT>*, double>::const_iterator cur = obj_coeffs.begin();
 		for (; cur != obj_coeffs.end(); ++cur) {
-			const Variable* var = cur->first;
+			const Variable<FT>* var = cur->first;
 			double coeff = cur->second;
 			SCIP_CALL(SCIPchgVarObj(scip, scip_variables[var->index()], coeff));
 		}
 
 		// Sets the objective sense
-		bool minimize = (Base_class::objective_->sense() == Linear_objective::MINIMIZE);
+		bool minimize = (Base_class::objective_->sense() == Linear_objective<FT>::MINIMIZE);
 		SCIP_CALL(SCIPsetObjsense(scip, minimize ? SCIP_OBJSENSE_MINIMIZE : SCIP_OBJSENSE_MAXIMIZE));
 
 		// Turns presolve on (it's the SCIP default).
@@ -182,8 +177,8 @@ namespace CGAL {
 				for (std::size_t i = 0; i < Base_class::variables_.size(); ++i) {
 					FT x = SCIPgetSolVal(scip, sol, scip_variables[i]);
 
-					Variable* v = Base_class::variables_[i];
-					if (v->variable_type() != Variable::CONTINUOUS)
+					Variable<FT>* v = Base_class::variables_[i];
+					if (v->variable_type() != Variable<FT>::CONTINUOUS)
 						x = static_cast<int>(std::round(x));
 
 					v->set_solution_value(x);

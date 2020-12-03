@@ -6,9 +6,9 @@
 // https://github.com/CGAL/cgal-public-dev/blob/PolyFit-newPackage-llnan/Polygonal_surface_reconstruction/include/CGAL/Polygonal_surface_reconstruction.h
 
 typedef CGAL::SCIP_mixed_integer_program_traits<double>	 MIP_Solver;
-typedef MIP_Solver::Variable			                 Variable;
-typedef MIP_Solver::Linear_objective	                 Linear_objective;
-typedef MIP_Solver::Linear_constraint	                 Linear_constraint;
+typedef CGAL::Variable<double>			                 Variable;
+typedef CGAL::Linear_objective<double>	                 Linear_objective;
+typedef CGAL::Linear_constraint<double>	                 Linear_constraint;
 
 inline std::vector<double> optimize(Mesh* mesh, std::vector<Plane_intersection>* edges) {
 	// Face attributes //

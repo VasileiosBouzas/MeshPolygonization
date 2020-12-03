@@ -229,8 +229,6 @@ namespace CGAL {
 		/// \cond SKIP_IN_MANUAL
 	public:
 		typedef	Mixed_integer_program_traits<FT>            Solver;
-		typedef Linear_expression<FT>                       Linear_expression;
-		typedef typename Linear_expression::Solver_entry    Solver_entry;
 
 		enum Sense { MINIMIZE, MAXIMIZE, UNDEFINED };
 
@@ -278,61 +276,54 @@ namespace CGAL {
 	{
 		/// \cond SKIP_IN_MANUAL
 	public:
-		typedef CGAL::Variable<FT>						Variable;
-		typedef CGAL::Linear_constraint<FT>				Linear_constraint;
-		typedef CGAL::Linear_objective<FT>				Linear_objective;
-		typedef typename Linear_objective::Sense		Sense;
-		typedef typename Variable::Variable_type		Variable_type;
-
-	public:
 		Mixed_integer_program_traits();
 		~Mixed_integer_program_traits();
 
 		/// Creates a single variable, add it to the solver, and returns its pointer.
 		/// \note If name is empty or not provided, a default name (e.g., x0, x1...) 
 		///		  will be given.
-		Variable* create_variable(
-			Variable_type type = Variable::CONTINUOUS,
-			FT lb = -Variable::infinity(),
-			FT ub = +Variable::infinity(),
+		Variable<FT>* create_variable(
+            typename Variable<FT>::Variable_type type = Variable<FT>::CONTINUOUS,
+			FT lb = -Variable<FT>::infinity(),
+			FT ub = +Variable<FT>::infinity(),
 			const std::string& name = ""
 		);
 
 		/// Creates a set of variables and add them to the solver.
 		/// \note Variables will be given default names, e.g., x0, x1...
-		std::vector<Variable*> create_n_variables(std::size_t n);
+		std::vector<Variable<FT>* > create_n_variables(std::size_t n);
 
 		/// Creates a single linear constraint, add it to the solver, and returns the pointer.
 		/// \note If name is empty or not provided, a default name (e.g., c0, c1...) will be given.
-		Linear_constraint* create_constraint(
-			FT lb = -Variable::infinity(),
-			FT ub = +Variable::infinity(),
+		Linear_constraint<FT>* create_constraint(
+			FT lb = -Variable<FT>::infinity(),
+			FT ub = +Variable<FT>::infinity(),
 			const std::string& name = ""
 		);
 
 		/// Creates a set of linear constraints and add them to the solver.	
 		/// \note Constraints with be given default names, e.g., c0, c1...
-		std::vector<Linear_constraint*> create_n_constraints(std::size_t n);
+		std::vector<Linear_constraint<FT>* > create_n_constraints(std::size_t n);
 
 		/// Creates the objective function and returns the pointer.
-		Linear_objective * create_objective(Sense sense = Linear_objective::MINIMIZE);
+		Linear_objective<FT> * create_objective(typename Linear_objective<FT>::Sense sense = Linear_objective<FT>::MINIMIZE);
 
 		/// Is the variable owned by this program?
-		bool has_variable(const Variable* var) const;
+		bool has_variable(const Variable<FT>* var) const;
 
 		/// Is the constraint owned by this program?
-		bool has_constraint(const Linear_constraint* cons) const;
+		bool has_constraint(const Linear_constraint<FT>* cons) const;
 
 		std::size_t num_variables() const { return variables_.size(); }
-		const std::vector<Variable*>& variables() const { return variables_; }
-		std::vector<Variable*>& variables() { return variables_; }
+		const std::vector<Variable<FT>* >& variables() const { return variables_; }
+		std::vector<Variable<FT>* >& variables() { return variables_; }
 
 		std::size_t num_constraints() const { return constraints_.size(); }
-		const std::vector<Linear_constraint*>& constraints() const { return constraints_; }
-		std::vector<Linear_constraint*>& constraints() { return constraints_; }
+		const std::vector<Linear_constraint<FT>* >& constraints() const { return constraints_; }
+		std::vector<Linear_constraint<FT>* >& constraints() { return constraints_; }
 
-		const Linear_objective * objective() const;
-		Linear_objective * objective();
+		const Linear_objective<FT>* objective() const;
+		Linear_objective<FT>* objective();
 
 		std::size_t num_continuous_variables() const;
 		std::size_t num_integer_variables() const;
@@ -361,9 +352,9 @@ namespace CGAL {
 		const std::string& error_message() const { return error_message_; }
 
 	protected:
-		Linear_objective *				objective_;
-		std::vector<Variable*>			variables_;
-		std::vector<Linear_constraint*>	constraints_;
+		Linear_objective<FT>*				    objective_;
+		std::vector<Variable<FT>* >			    variables_;
+		std::vector<Linear_constraint<FT>* >	constraints_;
 
 		std::vector<FT>		result_;
 		std::string			error_message_;
@@ -495,9 +486,9 @@ namespace CGAL {
 
 	template<typename FT>
 	void Linear_objective<FT>::clear() {
-		Linear_expression::clear();
-		Solver_entry::set_name("");
-		Solver_entry::set_index(0);
+		Linear_expression<FT>::clear();
+		Solver_entry<FT>::set_name("");
+		Solver_entry<FT>::set_index(0);
 	}
 
 
@@ -516,7 +507,7 @@ namespace CGAL {
 
 	template<typename FT>
 	Linear_objective<FT>::Linear_objective(Solver* solver, Sense sense)
-		: Linear_expression(solver)
+		: Linear_expression<FT>(solver)
 		, sense_(sense)
 	{
 	}
@@ -525,7 +516,7 @@ namespace CGAL {
 	Mixed_integer_program_traits<FT>::Mixed_integer_program_traits() {
 		// Intentionally set the objective to UNDEFINED, so it will allow me to warn
 		// the user if he/she forgot to set the objective sense.
-		objective_ = new Linear_objective(this, Linear_objective::UNDEFINED);
+		objective_ = new Linear_objective<FT>(this, Linear_objective<FT>::UNDEFINED);
 	}
 
 	template<typename FT>
@@ -563,13 +554,13 @@ namespace CGAL {
 	/// \endcond
 
 	template<typename FT>
-	typename Mixed_integer_program_traits<FT>::Variable* Mixed_integer_program_traits<FT>::create_variable(
-		Variable_type type /* = Variable::CONTINUOUS */,
+	Variable<FT>* Mixed_integer_program_traits<FT>::create_variable(
+        typename Variable<FT>::Variable_type type /* = Variable::CONTINUOUS */,
 		FT lb /* = -Variable::infinity() */,
 		FT ub /* = +Variable::infinity() */,
 		const std::string& name /* = "" */)
 	{
-		Variable* v = new Variable(this, type, lb, ub);
+        Variable<FT>* v = new Variable<FT>(this, type, lb, ub);
 
 		std::size_t idx = variables_.size();
 		v->set_index(static_cast<int>(idx));
@@ -582,22 +573,22 @@ namespace CGAL {
 	}
 
 	template<typename FT>
-	std::vector<typename Mixed_integer_program_traits<FT>::Variable*> Mixed_integer_program_traits<FT>::create_n_variables(std::size_t n) {
-		std::vector<Variable*> variables;
+	std::vector<Variable<FT>* > Mixed_integer_program_traits<FT>::create_n_variables(std::size_t n) {
+		std::vector<Variable<FT>* > variables;
 		for (std::size_t i = 0; i < n; ++i) {
-			Variable* v = create_variable();
+            Variable<FT>* v = create_variable();
 			variables.push_back(v);
 		}
 		return variables;
 	}
 
 	template<typename FT>
-	typename Mixed_integer_program_traits<FT>::Linear_constraint* Mixed_integer_program_traits<FT>::create_constraint(
+	Linear_constraint<FT>* Mixed_integer_program_traits<FT>::create_constraint(
 		FT lb /* = -Variable::infinity() */,
 		FT ub /* = +Variable::infinity() */,
 		const std::string& name /* = "" */)
 	{
-		Linear_constraint* c = new Linear_constraint(this, lb, ub);
+		Linear_constraint<FT>* c = new Linear_constraint<FT>(this, lb, ub);
 
 		std::size_t idx = constraints_.size();
 		c->set_index(static_cast<int>(idx));
@@ -610,26 +601,26 @@ namespace CGAL {
 	}
 
 	template<typename FT>
-	std::vector<typename Mixed_integer_program_traits<FT>::Linear_constraint*> Mixed_integer_program_traits<FT>::create_n_constraints(std::size_t n) {
-		std::vector<Linear_constraint*> constraints;
+	std::vector<Linear_constraint<FT>* > Mixed_integer_program_traits<FT>::create_n_constraints(std::size_t n) {
+		std::vector<Linear_constraint<FT>* > constraints;
 		for (std::size_t i = 0; i < n; ++i) {
-			Linear_constraint* v = create_constraint();
+			Linear_constraint<FT>* v = create_constraint();
 			constraints.push_back(v);
 		}
 		return constraints;
 	}
 
 	template<typename FT>
-	typename Mixed_integer_program_traits<FT>::Linear_objective * Mixed_integer_program_traits<FT>::create_objective(Sense sense /* = Linear_objective ::MINIMIZE*/) {
+	Linear_objective<FT> * Mixed_integer_program_traits<FT>::create_objective(typename Linear_objective<FT>::Sense sense /* = Linear_objective ::MINIMIZE*/) {
 		if (objective_)
 			delete objective_;
 
-		objective_ = new Linear_objective(this, sense);
+		objective_ = new Linear_objective<FT>(this, sense);
 		return objective_;
 	}
 
 	template<typename FT>
-	bool Mixed_integer_program_traits<FT>::has_variable(const Variable* var) const {
+	bool Mixed_integer_program_traits<FT>::has_variable(const Variable<FT>* var) const {
 		if (var == nullptr)
 			return false;
 
@@ -641,7 +632,7 @@ namespace CGAL {
 	}
 
 	template<typename FT>
-	bool Mixed_integer_program_traits<FT>::has_constraint(const Linear_constraint* cons) const {
+	bool Mixed_integer_program_traits<FT>::has_constraint(const Linear_constraint<FT>* cons) const {
 		if (cons == nullptr)
 			return false;
 
@@ -653,7 +644,7 @@ namespace CGAL {
 	}
 
 	template<typename FT>
-	const typename Mixed_integer_program_traits<FT>::Linear_objective * Mixed_integer_program_traits<FT>::objective() const {
+	const Linear_objective<FT> * Mixed_integer_program_traits<FT>::objective() const {
 		if (!objective_)
 			std::cerr << "please call \'create_objective()\' to create an objective first" << std::endl;
 
@@ -661,7 +652,7 @@ namespace CGAL {
 	}
 
 	template<typename FT>
-	typename Mixed_integer_program_traits<FT>::Linear_objective * Mixed_integer_program_traits<FT>::objective() {
+	Linear_objective<FT> * Mixed_integer_program_traits<FT>::objective() {
 		if (!objective_)
 			std::cerr << "please call \'create_objective()\' to create an objective first" << std::endl;
 
@@ -672,8 +663,8 @@ namespace CGAL {
 	std::size_t Mixed_integer_program_traits<FT>::num_continuous_variables() const {
 		std::size_t num_continuous_var = 0;
 		for (std::size_t i = 0; i < variables_.size(); ++i) {
-			const Variable* v = variables_[i];
-			if (v->variable_type() == Variable::CONTINUOUS)
+			const Variable<FT>* v = variables_[i];
+			if (v->variable_type() == Variable<FT>::CONTINUOUS)
 				++num_continuous_var;
 		}
 		return num_continuous_var;
@@ -683,8 +674,8 @@ namespace CGAL {
 	std::size_t Mixed_integer_program_traits<FT>::num_integer_variables() const {
 		std::size_t num_iteger_var = 0;
 		for (std::size_t i = 0; i < variables_.size(); ++i) {
-			const Variable* v = variables_[i];
-			if (v->variable_type() == Variable::INTEGER)
+			const Variable<FT>* v = variables_[i];
+			if (v->variable_type() == Variable<FT>::INTEGER)
 				++num_iteger_var;
 		}
 		return num_iteger_var;
@@ -694,8 +685,8 @@ namespace CGAL {
 	std::size_t Mixed_integer_program_traits<FT>::num_binary_variables() const {
 		std::size_t num_binary_var = 0;
 		for (std::size_t i = 0; i < variables_.size(); ++i) {
-			const Variable* v = variables_[i];
-			if (v->variable_type() == Variable::BINARY)
+			const Variable<FT>* v = variables_[i];
+			if (v->variable_type() == Variable<FT>::BINARY)
 				++num_binary_var;
 		}
 		return num_binary_var;
