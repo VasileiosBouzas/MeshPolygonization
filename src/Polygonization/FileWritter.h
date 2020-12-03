@@ -156,8 +156,7 @@ inline void writeSimplified(const Mesh* mesh, std::string file) {
 
 	// Write faces
 	std::vector<Vertex> vertices;
-	Mesh::Property_map<Face, std::size_t> supporting_face_num = mesh->property_map<Face, std::size_t>("f:supporting_face_num").first;
-	Mesh::Property_map<Face, double> covered_area = mesh->property_map<Face, double>("f:covered_area").first;
+
 	for (auto f : mesh->faces()) {
 		// Collect face vertices
 		vertices = vertex_around_face(mesh, f);

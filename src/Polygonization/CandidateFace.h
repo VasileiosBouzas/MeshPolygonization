@@ -52,7 +52,7 @@ inline std::vector<Candidate_face> define_faces(unsigned int id, std::vector<Seg
 			Segment_2 curve(source, target);
 
 			// Find original segment
-			int pos;
+			int pos = -1;
 			for (auto i = 0; i < segments->size(); i++) {
 				Segment_2 segment = (*segments)[i];
 				if (curve == segment) { pos = i; break;}

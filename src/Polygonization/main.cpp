@@ -15,7 +15,7 @@
 int main(int argc, char *argv[]) {
 	srand(time(NULL));
 
-    std::string input_file = "../../../data/scene.off";
+    std::string input_file = "../../../data/building.off";
     if (argc == 2)
         input_file = argv[1];
 
@@ -37,22 +37,19 @@ int main(int argc, char *argv[]) {
 	std::cin >> num_rings;*/
 
 	// Segmentation inputs
-	double dist_thres = 0;
+	double dist_threshold = 0.0;
 	VProp_geom geom = mesh.points();
 	for (auto h : mesh.halfedges()) {
 		auto source = geom[mesh.source(h)];
 		auto target = geom[mesh.target(h)];
-		dist_thres += std::sqrt(CGAL::squared_distance(source, target));
+        dist_threshold += std::sqrt(CGAL::squared_distance(source, target));
 	}
-	dist_thres /= mesh.number_of_halfedges();
-	std::cout << "Distance threshold: " << std::setprecision(2) << dist_thres << std::endl;
-	std::cout << "Insert distance threshold: ";
-	std::cin >> dist_thres;
+    dist_threshold /= mesh.number_of_halfedges();
+	std::cout << "Distance threshold: " << std::setprecision(2) << dist_threshold << std::endl;
 
 	// StructureGraph inputs
-	double imp_thres;
-	std::cout << "Insert importance threshold: ";
-	std::cin >> imp_thres;
+	double importance_threshold = 1.0;
+	std::cout << "Importance threshold: " << importance_threshold << std::endl;
 
 	// Calculate planarity
 	auto start = std::chrono::steady_clock::now();
@@ -66,7 +63,7 @@ int main(int argc, char *argv[]) {
 	// Initialize segmentation
 	start = std::chrono::steady_clock::now();
 	PlanarSegmentation seg;
-	std::size_t seg_number = seg.apply(&mesh, dist_thres, num_rings);
+	std::size_t seg_number = seg.apply(&mesh, dist_threshold, num_rings);
 	// Execution time
 	end = std::chrono::steady_clock::now();
 	duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
@@ -75,7 +72,7 @@ int main(int argc, char *argv[]) {
 	// StructureGraph
 	start = std::chrono::steady_clock::now();
 	StructureGraph graph;
-	Graph structure_graph = graph.construct(&mesh, seg_number, imp_thres);
+	Graph structure_graph = graph.construct(&mesh, seg_number, importance_threshold);
 	// Execution time
 	end = std::chrono::steady_clock::now();
 	duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
@@ -97,7 +94,9 @@ int main(int argc, char *argv[]) {
 	std::cout << "Simplification: " << std::setprecision(1) << duration.count() / 1000.0 << " secs" << std::endl;
 
 	// Write simplified mesh
-	writeSimplified(&simplified, input_file + "-result.ply");
+	const std::string result_file = input_file + "-result.ply";
+	writeSimplified(&simplified, result_file);
+	std::cout << "Done. Result saved to file \'" << result_file << std::endl;
 
 	return EXIT_SUCCESS;
 }

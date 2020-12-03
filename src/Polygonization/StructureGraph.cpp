@@ -109,6 +109,7 @@ std::size_t StructureGraph::segment_to_vertex(const Graph* G, unsigned int id) {
 	for (boost::tie(vb, ve) = vertices(*G); vb != ve; ++vb) {
 		if ((*G)[*vb].segment == id) { return *vb; }
 	}
+    return 0;
 }
 
 

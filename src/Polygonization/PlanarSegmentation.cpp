@@ -50,14 +50,13 @@ std::size_t PlanarSegmentation::apply(Mesh* mesh, double dist_thres, unsigned in
 			// Collect 1-ring faces for all seeds
 			neighbors.clear();
 			std::set<Face> new_neighbors;
+
 			for (auto seed : seeds) {
 				// Collect faces
 				new_neighbors = get_k_ring_faces(mesh, seed, 1);
 				neighbors.insert(new_neighbors.begin(), new_neighbors.end());
-
-				// End search for current seed
-				seeds.erase(seed);
 			}
+			seeds.clear();
 
 			// Check neighboring faces
 			for (auto neighbor : neighbors) {
@@ -80,7 +79,8 @@ std::size_t PlanarSegmentation::apply(Mesh* mesh, double dist_thres, unsigned in
 			}
 
 			// Calculate plane for current region
-			plane = fit_plane_to_faces(mesh, &current_region);
+			if (!current_region.empty())
+			    plane = fit_plane_to_faces(mesh, &current_region);
 		}
 
 		// Project vertices on supporting plane
