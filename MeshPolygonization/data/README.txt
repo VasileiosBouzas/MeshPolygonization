@@ -1,1 +1,0 @@
-In this folder, place the models you want to polygonize in .obj format

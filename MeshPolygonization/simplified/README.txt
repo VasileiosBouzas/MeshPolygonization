@@ -1,1 +1,0 @@
-In this folder, the simplified versions of the processed models are stored
