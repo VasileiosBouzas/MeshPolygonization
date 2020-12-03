@@ -1,7 +1,9 @@
 # MeshPolygonization
 ## Introduction
 
-MeshPolygonization is the implementation of the MVS (Multi-view Stereo) building mesh simplification method described in the following [paper](https://www.sciencedirect.com/science/article/pii/S0924271620301969):
+MeshPolygonization is the implementation of the MVS (Multi-view Stereo) 
+building mesh simplification method described in the following 
+[paper](https://www.sciencedirect.com/science/article/pii/S0924271620301969):
 ```
 Vasileios Bouzas, Hugo Ledoux, and  Liangliang Nan.
 Structure-aware Building Mesh Polygonization. 
@@ -11,28 +13,57 @@ Please consider citing the above paper if you use the code/program (or part of i
 
 ---
 
-The main characteristic of this method is structure awareness — namely, the recovery and preservation, for the input mesh, of both its primitives and the interrelationships between them (their configuration in 3D space). This awareness asserts that the resulting mesh closely follows the original and at the same time, dictates the geometric operations needed for its construction in the first place — thus providing accuracy, along with computational efficiency.
+The main characteristic of this method is structure awareness — namely, the recovery 
+and preservation, for the input mesh, of both its primitives and the interrelationships 
+between them (their configuration in 3D space). This awareness asserts that the 
+resulting mesh closely follows the original and at the same time, dictates the 
+geometric operations needed for its construction in the first place — thus providing 
+accuracy, along with computational efficiency.
 
-The proposed methodology is divided into three main stages: (a) primitive detection via mesh segmentation, (b) storage of primitive interrelationships in a structure graph and (c) polygonization. In particular, polygonization is accomplished here by approximating the primitive borders with a building scaffold, out of which a set of candidate faces is defined. The selection of faces from the candidate set to form the simplified mesh is achieved through the formulation of a linear binary programming problem, along with certain hard constraints to ensure that this mesh is both manifold and watertight.
+The proposed methodology consists of three main stages: (a) extracting planar primitives 
+via mesh segmentation, (b) encoding primitive interrelationships in a structure graph, and
+(c) mesh polygonization. In particular, polygonization is accomplished here by 
+approximating the primitive borders with a building scaffold, out of which a set of 
+candidate faces is defined. The selection of faces from the candidate set to form 
+the simplified mesh is achieved through a linear binary programming formulation, in which
+certain hard constraints are enforced to ensure that the result is manifold and watertight.
 
 ![](images/overview.png)
 
-## Dependencies
-The program was written in C++ (with C++11 functionalities) and compiled in Visual Studio 2017. This implementation is dependent on the following list of libraries:
 
-* [CGAL v4.13](https://www.cgal.org/)
-* [RPly](http://w3.impa.br/~diego/software/rply/)
-
-The solver needed for the optimization process are provided along with our implementation.
 
 ## Structure
 This repository is structured as follows:
-* **MeshPolygonization**: Contains our implementation of Structure-aware Mesh Polygonization
-  The results for each step of our methodology are exported in the following paths:
-  - /data: Here, you can place the meshes you wish to simplify in **.obj** format
-  - /outputs: Contains the results of our segmentation tecnhique. Basically, a .ply mesh enhanced with various properties (planarity,           chart etc.)
-  - /graphs: The structure graph for each processed model are exported here in .ply format
-  - /simplified: The final, simplified version for each processed model can be accessed through here
-* **meshes**: We provide some example meshes to test the implementation
-* **proj**: The project files from Visual Studio
-* **3rd_scip, 3rd_soplex, solver**: The solver for the optimization process, along with its dependencies.
+  - The **data** directory stores some mesh models of urban buildings. The results will also be written 
+    into this directory by default.
+  - The **src** directory contains the source code.
+  
+## Build
+
+*MeshPolygonization* depends on CGAL. Please make sure CGAL exists on your machine before you build 
+the program. During the development of *MeshPolygonization*, [CGAL v4.13](https://github.com/CGAL/cgal/releases/tag/releases/CGAL-4.13) was
+ used and later [CGAL v5.1](https://github.com/CGAL/cgal/releases/tag/v5.1) has also been tested. 
+ Newer versions should also work.
+
+To build *MeshPolygonization*, you need [CMake](https://cmake.org/download/) (`>= 3.1`) and of course a compiler 
+that supports `C++11 (or higher)`.
+
+*MeshPolygonization* has been tested on macOS (Xcode >= 8), Windows (MSVC >=2015), and 
+Linux (GCC >= 4.8, Clang >= 3.3). Machines nowadays typically provide higher 
+[supports](https://en.cppreference.com/w/cpp/compiler_support), so you should be 
+able to build *MeshPolygonization* on almost all platforms.
+
+There are many options to build *MeshPolygonization*. Choose one of the following (or 
+whatever you are familiar with):
+
+- Option 1: Use any IDE (e.g., [CLion](https://www.jetbrains.com/clion/) or 
+[QtCreator](https://www.qt.io/product)) that can directly handle CMakeLists files to open 
+the `CMakeLists.txt` file in the root directory. Then you should have obtained a usable project 
+and just build it.
+- Option 2: Use CMake to generate project files for your IDE. Then load the project to your IDE and 
+build it.
+- Option 3: Use CMake to generate Makefiles and then `make` (on Linux/macOS) or `nmake`(on Windows with Microsoft 
+Visual Studio).
+
+Don't have any experience with C/C++ programming? Have a look at [How to build *MeshPolygonization* 
+step by step](./How_to_build.md).
