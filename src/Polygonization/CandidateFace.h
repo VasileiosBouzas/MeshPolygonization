@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Utils.h"
-//#include "Draw.h"
 
 
 // Convert 3D segments to 2D segments

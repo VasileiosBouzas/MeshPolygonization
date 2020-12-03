@@ -6,7 +6,6 @@ project(${PROJECT_NAME})
 set(${PROJECT_NAME}_HEADERS
         CandidateFace.h
         CGALTypes.h
-#        Draw.h
         Intersection.h
         Optimization.h
         Orientation.h
