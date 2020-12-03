@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 
 	// StructureGraph inputs
 	double importance_threshold = 1.0;
-	std::cout << "Importance threshold: " << std::setprecision(2) << importance_threshold << std::endl;
+	std::cout << "Importance threshold (default: 1.0): " << std::setprecision(2) << importance_threshold << std::endl;
 
 	// Calculate planarity
 	auto start = std::chrono::steady_clock::now();
