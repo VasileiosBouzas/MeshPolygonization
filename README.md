@@ -34,15 +34,15 @@ certain hard constraints are enforced to ensure that the result is manifold and 
 
 ## Structure
 This repository is structured as follows:
-  - The **data** directory stores some mesh models of urban buildings. The results will also be written 
-    into this directory by default.
+  - The **data** directory stores some mesh models of urban buildings. The results will also 
+    be written into this directory by default.
   - The **src** directory contains the source code.
   
 ## Build
 
 *MeshPolygonization* depends on CGAL. Please make sure CGAL exists on your machine before you build 
 the program. During the development of *MeshPolygonization*, [CGAL v4.13](https://github.com/CGAL/cgal/releases/tag/releases/CGAL-4.13) was
- used and later [CGAL v5.1](https://github.com/CGAL/cgal/releases/tag/v5.1) has also been tested. 
+ used, and later [CGAL v5.1](https://github.com/CGAL/cgal/releases/tag/v5.1) has also been tested. 
  Newer versions should also work.
 
 To build *MeshPolygonization*, you need [CMake](https://cmake.org/download/) (`>= 3.1`) and of course a compiler 
