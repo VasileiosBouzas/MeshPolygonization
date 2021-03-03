@@ -67,3 +67,17 @@ Visual Studio).
 
 Don't have any experience with C/C++ programming? Have a look at [How to build *MeshPolygonization* 
 step by step](./How_to_build.md).
+
+
+## About the parameters
+
+The distance & importance threshold are related to our segmentation technique which dissolves the input mesh into planar segments.
+
+- **distance threshold**: It defines the maximum allowed distance of a mesh vertex to the fitted plane during the planar decomposition step. If this threshold is satisfied, then the vertex is considered as part of the planar region.
+
+- **importance threshold**: It defines which planar regions should be considered for further processing after the segmentation. In other segmentation techniques, it is a function of the number of faces out of which a planar region consists. Here, we prefer to define it as the proportion of the area for a given planar region to the entire mesh area.
+
+Apart from the distance threshold (the program already provides a suggested value), there are not really any recommendations on the importance value. Of course, it should be in the range (0, 100) - in other words, from 0% of the total mesh area up to 100%. To get an idea on how you can play around with these parameters and how the algorithm actually works, I urge you to first run some of the examples in the [data](https://github.com/VasileiosBouzas/MeshPolygonization/tree/master/data) directory where each one is provided with some tested parameters.
+
+For more theoretical details, please refer to the original paper.
+
