@@ -73,7 +73,7 @@ step by step](./How_to_build.md).
 
 The distance & importance threshold are related to our segmentation technique which dissolves the input mesh into planar segments.
 
-- **distance threshold**: It defines the maximum allowed distance of a mesh vertex to the fitted plane during the planar decomposition step. If this threshold is satisfied, then the vertex is considered as part of the planar region.
+- **distance threshold**: It defines the maximum allowed distance of a mesh vertex to the fitted plane during the planar decomposition step. If this threshold is satisfied, then the vertex is considered as part of the planar region. In general, you will need to choose this parameter for the plane extraction step such that necessary planes capturing the desired geometric features can be obtained, which is, however, usually not obvious due to different levels of complexity, noise, outliers, and missing data. In practice, I would suggest starting from a coarse model and then tuning the parameters to add more (but limited) details.
 
 - **importance threshold**: It defines which planar regions should be considered for further processing after the segmentation. In other segmentation techniques, it is a function of the number of faces out of which a planar region consists. Here, we prefer to define it as the proportion of the area for a given planar region to the entire mesh area.
 
