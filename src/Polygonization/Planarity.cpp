@@ -8,7 +8,10 @@
  *
  * LICENSE:
  *      MeshPolygonization is free for academic use. If you are interested in a commercial license please contact
- *      the 3D Geoinformation group. You can find the information here: https://3d.bk.tudelft.nl/
+ *      the 3D Geoinformation group.
+ *
+ * Copyright (C) 2019 3D Geoinformation Research Group
+ * https://3d.bk.tudelft.nl/
  */
 
 
