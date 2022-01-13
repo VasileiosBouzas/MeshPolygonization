@@ -82,7 +82,7 @@ Apart from the distance threshold (the program already provides a suggested valu
 For more theoretical details, please refer to the original paper.
 
 
-## LICENSE:
+## LICENSE
 MeshPolygonization is free for academic use. If you are interested in a commercial license please contact
 the 3D Geoinformation group. You can find the information here: https://3d.bk.tudelft.nl/
 
