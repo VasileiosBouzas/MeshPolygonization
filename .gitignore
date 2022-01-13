@@ -1,1 +1,4 @@
 src/cmake-build*
+src/.idea/.name
+*.xml
+*.iml

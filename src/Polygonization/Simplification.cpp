@@ -1,3 +1,16 @@
+/**
+ * MeshPolygonization is the implementation of the MVS (Multi-view Stereo) building mesh simplification method
+ * described in the following paper:
+ *      Vasileios Bouzas, Hugo Ledoux, and  Liangliang Nan.
+ *      Structure-aware Building Mesh Polygonization.
+ *      ISPRS Journal of Photogrammetry and Remote Sensing. 167(2020), 432-442, 2020.
+ * Please cite the above paper if you use the code/program (or part of it).
+ *
+ * LICENSE:
+ *      MeshPolygonization is free for academic use. If you are interested in a commercial license please contact
+ *      the 3D Geoinformation group. You can find the information here: https://3d.bk.tudelft.nl/
+ */
+
 #include "Simplification.h"
 #include "Segment.h"
 #include "Intersection.h"

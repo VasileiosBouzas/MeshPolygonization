@@ -9,7 +9,7 @@ Vasileios Bouzas, Hugo Ledoux, and  Liangliang Nan.
 Structure-aware Building Mesh Polygonization. 
 ISPRS Journal of Photogrammetry and Remote Sensing. 167(2020), 432-442, 2020.
 ```
-Please consider citing the above paper if you use the code/program (or part of it). 
+Please cite the above paper if you use the code/program (or part of it). 
 
 ---
 
@@ -80,4 +80,9 @@ The distance & importance threshold are related to our segmentation technique wh
 Apart from the distance threshold (the program already provides a suggested value), there are not really any recommendations on the importance value. Of course, it should be in the range (0, 100) - in other words, from 0% of the total mesh area up to 100%. To get an idea on how you can play around with these parameters and how the algorithm actually works, I urge you to first run some of the examples in the [data](https://github.com/VasileiosBouzas/MeshPolygonization/tree/master/data) directory where each one is provided with some tested parameters.
 
 For more theoretical details, please refer to the original paper.
+
+
+## LICENSE:
+MeshPolygonization is free for academic use. If you are interested in a commercial license please contact
+the 3D Geoinformation group. You can find the information here: https://3d.bk.tudelft.nl/
 
