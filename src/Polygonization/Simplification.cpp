@@ -32,7 +32,7 @@ Simplification::~Simplification()
 }
 
 
-Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
+Mesh Simplification::apply(const Mesh* mesh, const Graph* G, LinearProgramSolver::SolverName solver_name) {
 	// Compute bbox of original mesh
 	Bbox_3 bbox = CGAL::Polygon_mesh_processing::bbox(*mesh);
 
@@ -53,8 +53,7 @@ Mesh Simplification::apply(const Mesh* mesh, const Graph* G) {
 	std::vector<Candidate_face> faces = compute_mesh_faces(mesh, G, &plane_map, &edges);
 
 	// Optimize
-	Mesh simplified = simplify(&vertices, &edges, &faces);
-	return simplified;
+	return simplify(&vertices, &edges, &faces, solver_name);;
 }
 
 
@@ -394,7 +393,7 @@ std::vector<Candidate_face> Simplification::compute_mesh_faces(const Mesh* mesh,
 
 
 // Simplify
-Mesh Simplification::simplify(std::vector<Triple_intersection>* vertices, std::vector<Plane_intersection>* edges, std::vector<Candidate_face>* faces) {
+Mesh Simplification::simplify(std::vector<Triple_intersection>* vertices, std::vector<Plane_intersection>* edges, std::vector<Candidate_face>* faces, LinearProgramSolver::SolverName solver_name) {
 	// Construct proxy mesh
 	Mesh proxy_mesh;
 
@@ -447,7 +446,7 @@ Mesh Simplification::simplify(std::vector<Triple_intersection>* vertices, std::v
 	}
 
 	// Optimize
-	std::vector<double> X = optimize(&proxy_mesh, edges);
+	std::vector<double> X = optimize(&proxy_mesh, edges, solver_name);
 
 	// Faces to delete
 	std::vector<Face> to_delete;

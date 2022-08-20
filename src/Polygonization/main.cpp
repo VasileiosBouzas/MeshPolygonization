@@ -52,9 +52,13 @@ int main(int argc, char *argv[]) {
 	/*std::cout << "Insert order of k-ring neighborhood: ";
 	std::cin >> num_rings;*/
 
+
+    std::cout << "----------------------------------------------------------------" << std::endl;
+    std::cout << "------- Parameters (You may need to modify some of them) -------" << std::endl;
+
 	// Segmentation inputs
     double dist_threshold = 0.8;    // NOTE: you can modify this parameter here
-    std::cout << "Distance threshold: " << std::setprecision(2) << dist_threshold << " (You may need to modify this parameter)" << std::endl;
+    std::cout << "\tDistance threshold: " << std::setprecision(2) << dist_threshold << std::endl;
 #if 0
 	VProp_geom geom = mesh.points();
 	for (auto h : mesh.halfedges()) {
@@ -67,9 +71,15 @@ int main(int argc, char *argv[]) {
 
 	// StructureGraph inputs
 	double importance_threshold = 0.0;    // NOTE: you can modify this parameter here
-	std::cout << "Importance threshold: " << std::setprecision(2) << importance_threshold << " (You may need to modify this parameter)" << std::endl;
+	std::cout << "\tImportance threshold: " << std::setprecision(2) << importance_threshold << std::endl;
 
-	// Calculate planarity
+    auto solver = LinearProgramSolver::GUROBI;    // NOTE: you can modify this parameter here (available solvers are Gurobi and SCIP
+    std::cout << "\tSolver requested: " << (solver == LinearProgramSolver::GUROBI ? "Gurobi" : "SCIP") << " " << std::endl;
+
+    std::cout << "----------------------------------------------------------------" << std::endl;
+    std::cout << "----------------------------------------------------------------" << std::endl;
+
+    // Calculate planarity
 	auto start = std::chrono::steady_clock::now();
 	Planarity plan;
 	plan.compute(&mesh, num_rings);
@@ -105,7 +115,7 @@ int main(int argc, char *argv[]) {
 	// Simplification
 	start = std::chrono::steady_clock::now();
 	Simplification simpl;
-	Mesh simplified = simpl.apply(&mesh, &structure_graph);
+	Mesh simplified = simpl.apply(&mesh, &structure_graph, solver);
 	// Execution time
 	end = std::chrono::steady_clock::now();
 	duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
