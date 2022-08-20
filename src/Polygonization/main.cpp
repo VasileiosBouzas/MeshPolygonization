@@ -31,7 +31,7 @@
 int main(int argc, char *argv[]) {
 	srand(time(NULL));
 
-    std::string input_file = "../../../data/building.off";
+    std::string input_file = std::string(POLYGONIZATION_ROOT_DIR) + "/../data/arc.off";
     if (argc == 2)
         input_file = argv[1];
 
@@ -61,11 +61,14 @@ int main(int argc, char *argv[]) {
         dist_threshold += std::sqrt(CGAL::squared_distance(source, target));
 	}
     dist_threshold /= mesh.number_of_halfedges();
-	std::cout << "Distance threshold: " << std::setprecision(2) << dist_threshold << std::endl;
+    // NOTE: you can modify this parameter here
+    dist_threshold = 0.8;
+	std::cout << "Distance threshold: " << std::setprecision(2) << dist_threshold << " (You may need to modify this parameter)" << std::endl;
 
 	// StructureGraph inputs
-	double importance_threshold = 1.0;
-	std::cout << "Importance threshold (default: 1.0): " << std::setprecision(2) << importance_threshold << std::endl;
+    // NOTE: you can modify this parameter here
+	double importance_threshold = 0.0;
+	std::cout << "Importance threshold: " << std::setprecision(2) << importance_threshold << " (You may need to modify this parameter)" << std::endl;
 
 	// Calculate planarity
 	auto start = std::chrono::steady_clock::now();

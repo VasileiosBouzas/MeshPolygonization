@@ -35,4 +35,11 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_link_libraries( ${PROJECT_NAME} scip soplex rply)
 
+# The resources directory
+target_compile_definitions(
+        ${PROJECT_NAME}
+        PRIVATE
+        "POLYGONIZATION_ROOT_DIR=\"${POLYGONIZATION_ROOT}\""
+)
+
 include(../cmake/UseCGAL.cmake)

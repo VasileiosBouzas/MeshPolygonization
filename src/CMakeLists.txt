@@ -24,17 +24,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 ################################################################################
 
-# Detects whether this is a top-level project
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-	set(EASY3D_TOPLEVEL_PROJECT ON)
-else()
-	set(EASY3D_TOPLEVEL_PROJECT OFF)
-endif()
-
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
-################################################################################
-
 find_package(CGAL QUIET)
 if (NOT CGAL_FOUND)
     message(WARNING "This project require CGAL but CGAL was not found. Please make sure CGAL is installed, and then"
@@ -53,7 +42,6 @@ set(POLYGONIZATION_INCLUDE_DIR      ${POLYGONIZATION_ROOT} ${CMAKE_CURRENT_BINAR
 set(POLYGONIZATION_scip_DIR         ${POLYGONIZATION_3RD_PARTY_ROOT}/scip)
 set(POLYGONIZATION_soplex_DIR       ${POLYGONIZATION_3RD_PARTY_ROOT}/soplex)
 set(POLYGONIZATION_rply_DIR         ${POLYGONIZATION_3RD_PARTY_ROOT}/rply)
-
 
 ################################################################################
 
