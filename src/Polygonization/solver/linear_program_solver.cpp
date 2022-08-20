@@ -56,9 +56,11 @@ void LinearProgramSolver::upload_solution(const LinearProgram* program) {
 
 
 bool LinearProgramSolver::solve(const LinearProgram* program, SolverName solver) {
-#ifdef HAS_GUROBI
     if (solver == GUROBI)
+#ifdef HAS_GUROBI
         return _solve_GUROBI(program);
+#else
+        std::cerr << "WARNING: Gurobi requested but not available on this machine. The SCIP solver will be used instead" << std::endl;
 #endif
     return _solve_SCIP(program);
 }

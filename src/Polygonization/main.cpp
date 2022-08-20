@@ -73,8 +73,12 @@ int main(int argc, char *argv[]) {
 	double importance_threshold = 0.0;    // NOTE: you can modify this parameter here
 	std::cout << "\tImportance threshold: " << std::setprecision(2) << importance_threshold << std::endl;
 
-    auto solver = LinearProgramSolver::GUROBI;    // NOTE: you can modify this parameter here (available solvers are Gurobi and SCIP
-    std::cout << "\tSolver requested: " << (solver == LinearProgramSolver::GUROBI ? "Gurobi" : "SCIP") << " " << std::endl;
+    auto solver = LinearProgramSolver::GUROBI;    // NOTE: you can modify this parameter here (available solvers are Gurobi and SCIP)
+#ifdef HAS_GUROBI
+    std::cout << "\tSolver: " << (solver == LinearProgramSolver::GUROBI ? "Gurobi" : "SCIP") << " " << std::endl;
+#else
+    std::cout << "\tSolver requested: " << (solver == LinearProgramSolver::GUROBI ? "Gurobi (Not available, use SCIP instead)" : "SCIP") << " " << std::endl;
+#endif
 
     std::cout << "----------------------------------------------------------------" << std::endl;
     std::cout << "----------------------------------------------------------------" << std::endl;

@@ -28,11 +28,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 class LinearProgramSolver
 {
 public:
-	enum SolverName { 
-#ifdef HAS_GUROBI	// Gurobi is commercial and requires license :-(
-		GUROBI,	
-#endif
-		SCIP,		// Recommended default value.
+	enum SolverName {
+		GUROBI, // Gurobi is commercial and requires license :-(
+		SCIP	// Recommended default value.
 	};
 
 public:
