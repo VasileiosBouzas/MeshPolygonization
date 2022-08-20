@@ -82,6 +82,13 @@ Apart from the distance threshold (the program already provides a suggested valu
 For more theoretical details, please refer to the original paper.
 
 
+## About the solvers
+
+Two solvers, namely Gurobi and SCIP (with source code), are provided in this implementation. 
+The Gurobi solver is more efficient and reliable and should always be your first choice. 
+To use Gurobi, you will to install it and also obtain a license (free for academic use) from [here](https://user.gurobi.com/download/licenses/free-academic).
+In case you want an open source solver, please try SCIP, which is slower than Gurobi but acceptable.
+
 ## LICENSE
 MeshPolygonization is free for academic use. If you are interested in a commercial license please contact
 the 3D Geoinformation group.
