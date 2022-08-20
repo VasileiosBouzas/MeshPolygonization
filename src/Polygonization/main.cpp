@@ -53,7 +53,9 @@ int main(int argc, char *argv[]) {
 	std::cin >> num_rings;*/
 
 	// Segmentation inputs
-	double dist_threshold = 0.0;
+    double dist_threshold = 0.8;    // NOTE: you can modify this parameter here
+    std::cout << "Distance threshold: " << std::setprecision(2) << dist_threshold << " (You may need to modify this parameter)" << std::endl;
+#if 0
 	VProp_geom geom = mesh.points();
 	for (auto h : mesh.halfedges()) {
 		auto source = geom[mesh.source(h)];
@@ -61,13 +63,10 @@ int main(int argc, char *argv[]) {
         dist_threshold += std::sqrt(CGAL::squared_distance(source, target));
 	}
     dist_threshold /= mesh.number_of_halfedges();
-    // NOTE: you can modify this parameter here
-    dist_threshold = 0.8;
-	std::cout << "Distance threshold: " << std::setprecision(2) << dist_threshold << " (You may need to modify this parameter)" << std::endl;
+#endif
 
 	// StructureGraph inputs
-    // NOTE: you can modify this parameter here
-	double importance_threshold = 0.0;
+	double importance_threshold = 0.0;    // NOTE: you can modify this parameter here
 	std::cout << "Importance threshold: " << std::setprecision(2) << importance_threshold << " (You may need to modify this parameter)" << std::endl;
 
 	// Calculate planarity
