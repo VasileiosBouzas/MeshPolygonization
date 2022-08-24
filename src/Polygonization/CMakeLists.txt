@@ -39,7 +39,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         ${POLYGONIZATION_rply_DIR}
         )
 
-target_link_libraries( ${PROJECT_NAME} scip soplex rply)
+target_link_libraries( ${PROJECT_NAME} 3rd_scip 3rd_soplex 3rd_rply)
 
 # The resources directory
 target_compile_definitions(
@@ -48,7 +48,7 @@ target_compile_definitions(
         "POLYGONIZATION_ROOT_DIR=\"${POLYGONIZATION_ROOT}\""
 )
 
-include(../cmake/FindGUROBI.cmake)
+include(./cmake/FindGUROBI.cmake)
 if (GUROBI_FOUND)
     message(STATUS "Gurobi include dir: " ${GUROBI_INCLUDE_DIRS})
     message(STATUS "Gurobi libraries: " ${GUROBI_LIBRARIES})
@@ -59,5 +59,5 @@ if (GUROBI_FOUND)
     target_link_libraries(${PROJECT_NAME} ${GUROBI_LIBRARIES})
 endif()
 
-include(../cmake/UseCGAL.cmake)
+include(./cmake/UseCGAL.cmake)
 
