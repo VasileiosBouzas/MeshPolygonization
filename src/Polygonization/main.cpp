@@ -18,14 +18,17 @@
 #include <string>
 #include <fstream>
 #include <ctime>
-#include <stdlib.h>
+#include <cstdlib>
+#include <chrono>
+
 #include "Planarity.h"
 #include "PlanarSegmentation.h"
 #include "StructureGraph.h"
 #include "Simplification.h"
 #include "FileWritter.h"
 
-#include <chrono>
+#include <CGAL/Polygon_mesh_processing/repair.h>
+#include <CGAL/Polygon_mesh_processing/IO/polygon_mesh_io.h>
 
 
 int main(int argc, char *argv[]) {
@@ -37,37 +40,37 @@ int main(int argc, char *argv[]) {
 
 	// Read mesh
 	Mesh mesh;
-	std::ifstream input(input_file.c_str());
-	if (input.fail()) {
-	    std::cerr << "Failed to open file \'" << input_file << "\'." << std::endl;
+    if (CGAL::Polygon_mesh_processing::IO::read_polygon_mesh(input_file, mesh) == false) {
+	    std::cerr << "Failed to load input model from file \'" << input_file << "\'." << std::endl;
 	    return EXIT_FAILURE;
 	}
-	if (!(input >> mesh)) {
-		std::cerr << "Failed loading model from the file." << std::endl;
-		return EXIT_FAILURE;
-	}
-	
-	// Planarity inputs
+
+    auto num_isolated = CGAL::Polygon_mesh_processing::remove_isolated_vertices(mesh);
+    if (num_isolated > 0)
+        std::cout << "Warning: mesh has " << num_isolated << " isolated vertices - removed" << std::endl;
+
+    // Planarity inputs
 	unsigned int num_rings = 3;
 	/*std::cout << "Insert order of k-ring neighborhood: ";
 	std::cin >> num_rings;*/
-
 
     std::cout << "----------------------------------------------------------------" << std::endl;
     std::cout << "------- Parameters (You may need to modify some of them) -------" << std::endl;
 
 	// Segmentation inputs
+#if 1
     double dist_threshold = 0.8;    // NOTE: you can modify this parameter here
-    std::cout << "\tDistance threshold: " << std::setprecision(2) << dist_threshold << std::endl;
-#if 0
+#else
+    double dist_threshold = 0.0;
 	VProp_geom geom = mesh.points();
-	for (auto h : mesh.halfedges()) {
-		auto source = geom[mesh.source(h)];
-		auto target = geom[mesh.target(h)];
-        dist_threshold += std::sqrt(CGAL::squared_distance(source, target));
+	for (auto e : mesh.edges()) {
+		auto s = mesh.vertex(e, 0);
+		auto t = mesh.vertex(e, 1);
+        dist_threshold += std::sqrt(CGAL::squared_distance(geom[s], geom[t]));
 	}
-    dist_threshold /= mesh.number_of_halfedges();
+    dist_threshold /= mesh.num_edges();
 #endif
+    std::cout << "\tDistance threshold: " << std::setprecision(2) << dist_threshold << std::endl;
 
 	// StructureGraph inputs
 	double importance_threshold = 0.0;    // NOTE: you can modify this parameter here
