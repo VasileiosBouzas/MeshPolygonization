@@ -34,6 +34,7 @@ int main(int argc, char *argv[]) {
 	srand(time(NULL));
 
     std::string input_file = std::string(POLYGONIZATION_ROOT_DIR) + "/../data/arc.off";
+    std::cout << "input model: " << input_file << std::endl;
     if (argc == 2)
         input_file = argv[1];
 
