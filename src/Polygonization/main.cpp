@@ -27,7 +27,6 @@
 #include "Simplification.h"
 #include "FileWritter.h"
 
-#include <CGAL/Polygon_mesh_processing/repair.h>
 #include <CGAL/Polygon_mesh_processing/IO/polygon_mesh_io.h>
 
 
@@ -44,10 +43,6 @@ int main(int argc, char *argv[]) {
 	    std::cerr << "Failed to load input model from file \'" << input_file << "\'." << std::endl;
 	    return EXIT_FAILURE;
 	}
-
-    auto num_isolated = CGAL::Polygon_mesh_processing::remove_isolated_vertices(mesh);
-    if (num_isolated > 0)
-        std::cout << "Warning: mesh has " << num_isolated << " isolated vertices - removed" << std::endl;
 
     // Planarity inputs
 	unsigned int num_rings = 3;
