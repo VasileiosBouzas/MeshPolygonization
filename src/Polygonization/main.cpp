@@ -109,10 +109,10 @@ int main(int argc, char *argv[]) {
 	duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 	std::cout << "Structure Graph: " << std::setprecision(1) << duration.count() / 1000.0 << " secs" << std::endl;
 
-//	// Write original mesh
-//	writeMesh(&mesh, input_file + "-input.ply");
-//
-//	// Write graph
+	// Write the mesh with computed face/vertex properties
+//	writeMesh(&mesh, input_file + "-segmentation.ply");
+
+	// Write graph
 //	writeGraph(&mesh, &structure_graph, input_file + "-graph.obj");
 
 	// Simplification
