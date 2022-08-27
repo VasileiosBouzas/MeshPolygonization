@@ -22,6 +22,7 @@ jobs:
       - run: sudo apt-get update || true;
              sudo apt-get install ${{ matrix.compilers }};
              sudo apt-get install build-essential libglu1-mesa-dev freeglut3-dev mesa-common-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev;
+             cd src;
              rm -rf Release;
              mkdir Release;
              cd Release;
