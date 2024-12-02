@@ -15,7 +15,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler: [g++-7, g++-8, g++-9, g++-10, g++-11]
+        compiler:
+          - name: g++-7
+            version: 7
+          - name: g++-8
+            version: 8
+          - name: g++-9
+            version: 9
+          - name: g++-10
+            version: 10
+          - name: g++-11
+            version: 11
 
     runs-on: ubuntu-20.04
 
@@ -30,11 +40,10 @@ jobs:
             libglu1-mesa-dev freeglut3-dev mesa-common-dev \
             libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
 
-      - name: Install GCC version ${{ matrix.compiler }}
+      - name: Install GCC version ${{ matrix.compiler.name }}
         run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-${{ matrix.compiler#*- }} g++-${{ matrix.compiler#*- }}
-          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/${{ matrix.compiler }} 100
+          sudo apt-get install -y gcc-${{ matrix.compiler.version }} g++-${{ matrix.compiler.version }}
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${{ matrix.compiler.version }} 100
           g++ --version
 
       - name: Configure and build with CMake
