@@ -11,33 +11,33 @@ on: [push, pull_request]
 
 jobs:
   build:
-    name: ${{ matrix.compilers }}
+    name: Build with ${{ matrix.compiler }}
     strategy:
       fail-fast: false
       matrix:
-        compilers: [g++-7, g++-8, g++-9, g++-10, g++-11]
+        compiler: [g++-7, g++-8, g++-9, g++-10, g++-11]
+
     runs-on: ubuntu-20.04
+
     steps:
-      - uses: actions/checkout@v1
-      - name: Install GCC
+      - name: Check out the repository
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
         run: |
-          sudo apt-get update || true
-          if [ "${{ matrix.compilers }}" == "g++-11" ]; then
-            sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-            sudo apt-get update
-          fi
-          sudo apt-get install ${{ matrix.compilers }}
-      - name: Install Dependencies
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake \
+            libglu1-mesa-dev freeglut3-dev mesa-common-dev \
+            libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+
+      - name: Install GCC version ${{ matrix.compiler }}
         run: |
-          sudo apt-get install build-essential libglu1-mesa-dev mesa-common-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libboost-all-dev libcgal-dev qt5-default
-      - name: Build Project
+          sudo apt-get install -y ${MATRIX_COMPILER_VERSION}
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/${{ matrix.compiler }} 100
+          g++ --version
+
+      - name: Configure and build with CMake
         run: |
-          rm -rf Release
-          mkdir Release
-          cd Release
-          if [ "${{ matrix.compilers }}" == "g++-11" ]; then
-            cmake -DCMAKE_CXX_COMPILER=/usr/bin/g++-11 -DCMAKE_BUILD_TYPE=Release ..
-          else
-            cmake -DCMAKE_CXX_COMPILER=${{ matrix.compilers }} -DCMAKE_BUILD_TYPE=Release ..
-          fi
+          mkdir -p build && cd build
+          cmake -DCMAKE_CXX_COMPILER=$(which g++) -DCMAKE_BUILD_TYPE=Release ..
           make
