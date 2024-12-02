@@ -90,6 +90,8 @@ To use Gurobi, you need to install it and also obtain a license (free for academ
 You may also need to modify the path(s) to Gurobi in [FindGUROBI.cmake](./src/cmake/FindGUROBI.cmake), for CMake to find Gurobi.
 In case you want an open source solver, please try SCIP, which is slower than Gurobi but acceptable.
 
+**Note**: run the program in the Release mode for better efficiency. 
+
 ## LICENSE
 MeshPolygonization is free for academic use. If you are interested in a commercial license please contact
 the 3D Geoinformation group.
