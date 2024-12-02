@@ -465,6 +465,6 @@ Mesh Simplification::simplify(std::vector<Triple_intersection>* vertices, std::v
 	}
 
 	// Ensure consistent orientation
-	orient(&proxy_mesh, vertices);
+	orient(proxy_mesh, *vertices);
 	return proxy_mesh;
 }
