@@ -32,16 +32,13 @@ jobs:
 
       - name: Install GCC version ${{ matrix.compiler }}
         run: |
-          sudo apt-get install -y ${MATRIX_COMPILER_PACKAGE}
-          if ! command -v ${{ matrix.compiler }}; then
-            echo "Error: ${{ matrix.compiler }} not installed"; exit 1;
-          fi
-        env:
-          MATRIX_COMPILER_PACKAGE: |
-            $(if [[ "${{ matrix.compiler }}" == "g++-11" ]]; then echo "gcc-11 g++-11"; else echo "${{ matrix.compiler }}"; fi)
+          sudo apt-get update
+          sudo apt-get install -y gcc-${{ matrix.compiler#*- }} g++-${{ matrix.compiler#*- }}
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/${{ matrix.compiler }} 100
+          g++ --version
 
       - name: Configure and build with CMake
         run: |
           mkdir -p build && cd build
-          cmake -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_BUILD_TYPE=Release ..
+          cmake -DCMAKE_CXX_COMPILER=$(which g++) -DCMAKE_BUILD_TYPE=Release ..
           make
